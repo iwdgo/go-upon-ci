@@ -38,12 +38,20 @@ jobs:
         mv *.patch go/
         cd go
         git apply -v --ignore-space-change --ignore-whitespace --whitespace=fix *.patch
-        git commit -m 'ARM rules update' || true
 
-    - name: Run compiler rules
+    - name: Update compiler rules
       run: |
         cd go/src/cmd/compile/internal/ssa/gen
         go run *.go
+
+    - name: Commit changes
+      run: |
+        cd go
+        git add src/cmd/compile/internal/ssa/gen/ARM.rules
+        git add src/cmd/compile/internal/ssa/rewriteARM.go
+        git config user.email "constantinkonstantinidis@gmail.com"
+        git config user.name "Constantin Konstantinidis"
+        git commit -m 'ARM rules update' || true
 
     - name: Build
       run: |
@@ -54,13 +62,19 @@ jobs:
     - name: Test
       run: |
         cd go/bin
+        go env GOROOT
         export GOROOT=
         go tool dist version
         go tool dist test
 
     - name: Toolstash -cmp
       run: |
-        cd go/bin
-        export GOROOT=
+        cd go/src
+        go version
         go tool dist install cmd/compile
         go build -toolexec 'toolstash -cmp' -a std
+
+    - name: Toolstash-check
+      run: |
+        go get -u github.com/mdempsky/toolstash-check
+        toolstash-check || true
