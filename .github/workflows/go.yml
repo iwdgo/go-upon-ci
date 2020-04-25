@@ -19,6 +19,7 @@ jobs:
 
     - name: Clone go on tip
       run: |
+        go env
         git version
         git clone https://github.com/golang/go.git --branch master --single-branch --no-tags
         cd go/src
@@ -34,9 +35,8 @@ jobs:
     - name: Merge patch
       run: |
         pwd
-        ls -al
         mv *.patch go/
-        cd go
+        cd go/
         git apply -v --ignore-space-change --ignore-whitespace --whitespace=fix *.patch
 
     - name: Update compiler rules
@@ -72,7 +72,7 @@ jobs:
         cd go/src
         go version
         go tool dist install cmd/compile
-        go build -toolexec 'toolstash -cmp' -a std
+        go build -toolexec 'toolstash -cmp' -a std || true
 
     - name: Toolstash-check
       run: |
