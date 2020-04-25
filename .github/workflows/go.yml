@@ -28,7 +28,7 @@ jobs:
       run: |
         go get -u golang.org/x/tools/...
         toolstash || true
-        toolstash -v save
+        toolstash -v save || true
 
     - name: Merge patch
       run: |
