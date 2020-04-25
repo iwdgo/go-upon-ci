@@ -38,6 +38,7 @@ jobs:
         mv *.patch go/
         cd go
         git apply -v --ignore-space-change --ignore-whitespace --whitespace=fix *.patch
+        git commit -m 'ARM rules update' || true
 
     - name: Run compiler rules
       run: |
