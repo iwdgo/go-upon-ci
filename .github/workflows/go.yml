@@ -1,4 +1,4 @@
-name: Go
+name: go-compiler
 on: [push]
 jobs:
 
@@ -14,12 +14,12 @@ jobs:
         architecture: x86
       id: go
 
-    - name: Check environment
-      run: |
-        git version
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v1
 
     - name: Clone go on tip
       run: |
+        git version
         git clone https://github.com/golang/go.git --branch master --single-branch --no-tags
         cd go/src
         git log -1 --pretty=short
@@ -35,7 +35,7 @@ jobs:
       run: |
         pwd
         ls -al
-        mv *.patch ./go/
+        mv *.patch go/
         cd go
         git apply -v --ignore-space-change --ignore-whitespace --whitespace=fix *.patch
 
