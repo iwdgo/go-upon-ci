@@ -11,7 +11,7 @@ jobs:
       uses: actions/setup-go@v1
       with:
         go-version: 1.14
-        architecture: x86
+        architecture: x64
       id: go
 
     - name: Check out code into the Go module directory
@@ -28,6 +28,8 @@ jobs:
     - name: Toolstash save
       run: |
         go get -u golang.org/x/tools/...
+        cd $GOPATH
+        ls
         pwd
         toolstash || true
         toolstash -v save || true
@@ -77,4 +79,7 @@ jobs:
     - name: Toolstash-check
       run: |
         go get -u github.com/mdempsky/toolstash-check
+        cd $GOPATH
+        ls
+        pwd
         toolstash-check || true
