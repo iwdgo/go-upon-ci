@@ -27,12 +27,15 @@ jobs:
     - name: Toolstash save
       run: |
         go get -u golang.org/x/tools/...
+        pwd
         toolstash || true
         toolstash -v save || true
 
     - name: Merge patch
       run: |
-        mv *.patch go
+        pwd
+        ls -al
+        mv *.patch ./go/
         cd go
         git apply -v --ignore-space-change --ignore-whitespace --whitespace=fix *.patch
 
