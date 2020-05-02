@@ -46,7 +46,7 @@ jobs:
         export COMMITTITLE=$(basename -s .patch *.patch)
         rm *.patch
         git add -A
-        ls -al /usr/bin | grep git
+        ls -al /usr/bin/git
         whoami | xargs -I {} git config user.name {}
         whoami | xargs -I {} git config user.email {}@github.com
         git commit -m ${COMMITTITLE}
@@ -75,4 +75,4 @@ jobs:
     - name: Toolstash-check
       run: |
         go get -u github.com/iwdgo/toolstash-check
-        toolstash-check -v -repo $GOCLONE
+        toolstash-check -v -repo=$GOCLONE
