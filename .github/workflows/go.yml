@@ -21,7 +21,7 @@ jobs:
         git clone https://github.com/golang/go.git --branch master --single-branch --no-tags
         cd go
         pwd
-        ::set-env name=GOCLONE::$(pwd)
+        echo "::set-env name=GOCLONE::$(pwd)"
         echo $GOCLONE
         git log -1 --pretty=short
 
