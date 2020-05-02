@@ -61,17 +61,19 @@ jobs:
     - name: Test
       run: |
         cd go/bin
-        go env GOROOT
-        # echo "::set-env name=GOROOT::"
         export GOROOT=
+        go env -w GOROOT=
+        # echo "::set-env name=GOROOT::"
         go tool dist version
-        # go tool dist test
+        go tool dist test
 
     - name: Toolstash -cmp
       run: |
         cd go/src
         go version
+        export GOROOT=
         go env -w GO111MODULE=auto
+        go tool dist version
         # go tool dist install cmd/compile
         # go build -toolexec 'toolstash -cmp' -a std
 
@@ -80,3 +82,9 @@ jobs:
         go get -u github.com/iwdgo/toolstash-check
         cd $GOPATH
         toolstash-check -v -repo $GOCLONE
+
+    - name: Toolstash-check -all
+      run: |
+        go get -u github.com/iwdgo/toolstash-check
+        cd $GOPATH
+        toolstash-check -all -v -repo $GOCLONE
