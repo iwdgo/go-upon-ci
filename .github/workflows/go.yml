@@ -76,8 +76,5 @@ jobs:
     - name: Toolstash-check
       run: |
         go get -u github.com/iwdgo/toolstash-check
-        echo $GOCLONE
         cd $GOPATH
-        ls
-        pwd
-        toolstash-check -v -repo /home/runner/work/go-upon-ci/go-upon-ci/go
+        toolstash-check -v -repo $GOCLONE
