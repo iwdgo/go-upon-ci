@@ -62,6 +62,7 @@ jobs:
       run: |
         cd go/bin
         go env GOROOT
+        # echo "::set-env name=GOROOT::"
         export GOROOT=
         go tool dist version
         # go tool dist test
