@@ -48,6 +48,7 @@ jobs:
     - name: Commit changes
       run: |
         cd go
+        git config -l
         export COMMITTITLE=$(basename -s .patch *.patch)
         rm *.patch
         git add -A
