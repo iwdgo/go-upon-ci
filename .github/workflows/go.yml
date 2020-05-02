@@ -48,7 +48,6 @@ jobs:
         export COMMITTITLE=$(basename -s .patch *.patch)
         rm *.patch
         git add -A
-        ls -al /usr/.gitconfig
         whoami | xargs -I {} git config user.name {}
         whoami | xargs -I {} git config user.email {}@github.com
         git commit -m ${COMMITTITLE}
