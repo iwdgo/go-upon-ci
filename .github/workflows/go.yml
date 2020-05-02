@@ -47,12 +47,11 @@ jobs:
     - name: Commit changes
       run: |
         cd go
-        git config --global -l
-        git config --local -l
-        git config -l
         export COMMITTITLE=$(basename -s .patch *.patch)
         rm *.patch
         git add -A
+        whoami | xargs -I {} git config user.name {}
+        whoami | xargs -I {} git config user.email {}@github.com
         git commit -m ${COMMITTITLE}
 
     - name: Build
