@@ -14,7 +14,7 @@ jobs:
       id: go
 
     - name: Check out code into the Go module directory
-      uses: actions/checkout@v1
+      uses: actions/checkout@v2
 
     - name: Clone go on tip
       run: |
@@ -48,11 +48,9 @@ jobs:
     - name: Commit changes
       run: |
         cd go
-        commit-title=$(basename -s .patch *.patch)
+        export commit-title=$(basename -s .patch *.patch)
         rm *.patch
         git add -A
-        whoami | xargs -I {} git config user.name {}
-        whoami | xargs -I {} git config user.email {}
         git commit -m commit-title
 
     - name: Build
