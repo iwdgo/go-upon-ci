@@ -72,8 +72,8 @@ jobs:
         cd go/src
         go version
         go env -w GO111MODULE=auto
-        go tool dist install cmd/compile
-        go build -toolexec 'toolstash -cmp' -a std
+        # go tool dist install cmd/compile
+        # go build -toolexec 'toolstash -cmp' -a std
 
     - name: Toolstash-check
       run: |
