@@ -20,7 +20,9 @@ jobs:
       run: |
         git clone https://github.com/golang/go.git --branch master --single-branch --no-tags
         cd go
-        export GOCLONE=$(pwd)
+        pwd
+        ::set-env name=GOCLONE::$(pwd)
+        echo $GOCLONE
         git log -1 --pretty=short
 
     - name: Toolstash save
@@ -46,7 +48,7 @@ jobs:
         export COMMITTITLE=$(basename -s .patch *.patch)
         rm *.patch
         git add -A
-        ls -al /usr/bin/git
+        ls -alR /usr | grep gitconfig
         whoami | xargs -I {} git config user.name {}
         whoami | xargs -I {} git config user.email {}@github.com
         git commit -m ${COMMITTITLE}
@@ -63,7 +65,7 @@ jobs:
         go env GOROOT
         export GOROOT=
         go tool dist version
-        go tool dist test
+        # go tool dist test
 
     - name: Toolstash -cmp
       run: |
