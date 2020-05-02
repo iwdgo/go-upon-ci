@@ -28,6 +28,7 @@ jobs:
       run: |
         go env -w GO111MODULE=auto
         go get -u golang.org/x/tools/...
+        echo $PATH
         pwd
         toolstash || true
         toolstash -v save || true
@@ -47,13 +48,12 @@ jobs:
     - name: Commit changes
       run: |
         cd go
-        git status
-        git add src/cmd/compile/internal/ssa/gen/ARM.rules
-        git add src/cmd/compile/internal/ssa/rewriteARM.go
-        whoami
-        git config user.email "constantinkonstantinidis@gmail.com"
+        commit-title=$(basename -s .patch *.patch)
+        rm *.patch
+        git add -A
         whoami | xargs -I {} git config user.name {}
-        git commit -m 'ARM rules update' || true
+        whoami | xargs -I {} git config user.email {}
+        git commit -m commit-title
 
     - name: Build
       run: |
