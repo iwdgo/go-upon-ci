@@ -18,8 +18,7 @@ jobs:
 
     - name: Clone go on tip
       run: |
-        go env
-        git version
+        ls /home/
         git clone https://github.com/golang/go.git --branch master --single-branch --no-tags
         cd go/src
         git log -1 --pretty=short
@@ -73,7 +72,7 @@ jobs:
         cd go/src
         go version
         go tool dist install cmd/compile
-        go build -toolexec 'toolstash -cmp' -a std || true
+        go build -toolexec 'toolstash -cmp' -a std
 
     - name: Toolstash-check
       run: |
@@ -82,4 +81,4 @@ jobs:
         cd $GOPATH
         ls
         pwd
-        toolstash-check -v || true
+        toolstash-check -v -repo /home/runner/work/go-upon-ci/go-upon-ci/go
