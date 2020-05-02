@@ -27,8 +27,6 @@ jobs:
     - name: Toolstash save
       run: |
         go get -u golang.org/x/tools/...
-        cd $GOPATH
-        ls
         pwd
         toolstash || true
         toolstash -v save || true
@@ -50,6 +48,7 @@ jobs:
         cd go
         git add src/cmd/compile/internal/ssa/gen/ARM.rules
         git add src/cmd/compile/internal/ssa/rewriteARM.go
+        whoami
         git config user.email "constantinkonstantinidis@gmail.com"
         git config user.name "Constantin Konstantinidis"
         git commit -m 'ARM rules update' || true
@@ -77,8 +76,9 @@ jobs:
 
     - name: Toolstash-check
       run: |
-        go get -u github.com/mdempsky/toolstash-check
+        go get -u github.com/iwdgo/toolstash-check
+        echo $GOROOT
         cd $GOPATH
         ls
         pwd
-        toolstash-check || true
+        toolstash-check -v || true
