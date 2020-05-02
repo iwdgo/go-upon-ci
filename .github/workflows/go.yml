@@ -30,8 +30,7 @@ jobs:
         go get -u golang.org/x/tools/...
         echo $PATH
         pwd
-        toolstash || true
-        toolstash -v save || true
+        toolstash -v save
 
     - name: Merge patch
       run: |
@@ -48,6 +47,8 @@ jobs:
     - name: Commit changes
       run: |
         cd go
+        git config --global -l
+        git config --local -l
         git config -l
         export COMMITTITLE=$(basename -s .patch *.patch)
         rm *.patch
