@@ -18,22 +18,19 @@ jobs:
 
     - name: Clone go on tip
       run: |
-        ls /home/
         git clone https://github.com/golang/go.git --branch master --single-branch --no-tags
-        cd go/src
+        cd go
+        export GOCLONE=$(pwd)
         git log -1 --pretty=short
 
     - name: Toolstash save
       run: |
         go env -w GO111MODULE=auto
         go get -u golang.org/x/tools/...
-        echo $PATH
-        pwd
         toolstash -v save
 
     - name: Merge patch
       run: |
-        pwd
         mv *.patch go/
         cd go/
         git apply -v --ignore-space-change --ignore-whitespace --whitespace=fix *.patch
@@ -49,6 +46,7 @@ jobs:
         export COMMITTITLE=$(basename -s .patch *.patch)
         rm *.patch
         git add -A
+        ls -al /usr/bin | grep git
         whoami | xargs -I {} git config user.name {}
         whoami | xargs -I {} git config user.email {}@github.com
         git commit -m ${COMMITTITLE}
@@ -77,8 +75,4 @@ jobs:
     - name: Toolstash-check
       run: |
         go get -u github.com/iwdgo/toolstash-check
-        echo $GOROOT
-        cd $GOPATH
-        ls
-        pwd
-        toolstash-check -v -repo /home/runner/work/go-upon-ci/go-upon-ci/go
+        toolstash-check -v -repo $GOCLONE
