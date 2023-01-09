@@ -23,14 +23,7 @@ jobs:
       run: |
         cd go/src
         export GOROOT_BOOTSTRAP=$(go env GOROOT)
-        sh ./make.bash
-
-    - name: Test
-      run: |
-        cd go/bin
-        export GOROOT=
-        go tool dist version
-        go tool dist test
+        sh ./all.bash
 
     - name: Upload go executable
       uses: actions/upload-artifact@v3
