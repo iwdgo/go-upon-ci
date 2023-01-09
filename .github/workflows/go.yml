@@ -28,5 +28,5 @@ jobs:
     - name: Upload go executable
       uses: actions/upload-artifact@v3
       with:
-        name: gotip-${{ github.RUNNER_OS }}
+        name: gotip-${{ runs-on }}
         path: go/bin
