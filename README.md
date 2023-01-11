@@ -1,21 +1,26 @@
-[![Build Status](https://app.travis-ci.com/iwdgo/go-upon-ci.svg?branch=master)](https://app.travis-ci.com/iwdgo/go-upon-ci)
-[![Build Status](https://api.cirrus-ci.com/github/iwdgo/go-upon-ci.svg)](https://cirrus-ci.com/github/iwdgo/go-upon-ci)
-[![Go](https://github.com/iwdgo/go-upon-ci/actions/workflows/go.yml/badge.svg)](https://github.com/iwdgo/go-upon-ci/actions/workflows/go.yml)
+
+
 
 # Build Go using toolchain on tip
 
-Details on related branch:
+Architecture is set `amd64`.
+Zipped `go` and `gofmt` is available for download (except on Travis-CI).
 
-- [Cirrus CI](https://github.com/iwdgo/go-upon-ci/tree/cirrusci)
-- [Travis CI](https://github.com/iwdgo/go-upon-ci/tree/travisci)
+Platforms:
+- [Github Actions - Linux](https://github.com/iwdgo/go-upon-ci) [![Go](https://github.com/iwdgo/go-upon-ci/actions/workflows/go.yml/badge.svg)](https://github.com/iwdgo/go-upon-ci/actions/workflows/go.yml)
+- [Github Actions - Windows](https://github.com/iwdgo/go-upon-ci/tree/master-windows) [![Go](https://github.com/iwdgo/go-upon-ci/actions/workflows/go.yml/badge.svg)](https://github.com/iwdgo/go-upon-ci/actions/workflows/go.yml?branch=master-windows)
+- [Cirrus CI](https://github.com/iwdgo/go-upon-ci/tree/cirrusci) [![Build Status](https://api.cirrus-ci.com/github/iwdgo/go-upon-ci.svg)](https://cirrus-ci.com/github/iwdgo/go-upon-ci)
+- [Travis CI](https://github.com/iwdgo/go-upon-ci/tree/travisci) [![Build Status](https://app.travis-ci.com/iwdgo/go-upon-ci.svg?branch=master)](https://app.travis-ci.com/iwdgo/go-upon-ci)
 
-## Github Actions
-
-Toolchain runs Ubuntu on `amd64` which is the default image.
-Artefact is available for download.
 
 ## Issue branch
 
-To build a patched version using tip:
-- Add a patch file to the `issue<#issue number>` branch using `git format-patch <your commit>` 
-- Push to your published repository.
+A patch in git format is added on tip of the go repository.
+
+Steps could be:
+- `git clone github.com/iwdgo/go-upon-ci`
+- `cd go-upon-ci`
+- `git checkout issue...` to one of the issue branch
+- Duplicate branch with something like `git checkout -b issue<#issue number>`
+- Move patch created with something like `git format-patch master` 
+- Push branch to your published repository.
