@@ -15,7 +15,7 @@ jobs:
 
     - name: Clone master of go
       run: |
-        git clone https://github.com/golang/go.git --branch master --single-branch --no-tags
+        git clone --depth=1 --branch master --single-branch --no-tags https://go.googlesource.com/go
         cd go/src
         git log -1 --pretty=short
 
