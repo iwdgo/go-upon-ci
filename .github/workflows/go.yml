@@ -14,8 +14,10 @@ jobs:
       id: go
 
     - name: Build go from tip
-      uses: iwdgo/gotip-build@v0.0.1
+      uses: iwdgo/gotip-build@v0.1.0
       id: gotip
+      with:
+        test_build: true
 
     - name: Upload go executable
       uses: actions/upload-artifact@v3
