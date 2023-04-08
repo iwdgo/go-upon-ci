@@ -1,9 +1,5 @@
 name: go-on-tip
-on:
-  push:
-    tags:
-      - v**
-
+on: [push]
 jobs:
 
   build:
