@@ -22,7 +22,7 @@ jobs:
 
     - name: Upload go executable
       uses: actions/upload-artifact@v3
-      if: {{ env.crosscompile == 'true' }}
+      if: ${{ env.crosscompile == 'true' }}
       with:
         name: gotip-${{ env.goos }}-${{ env.arch }}
         path: go/bin/
