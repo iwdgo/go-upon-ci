@@ -14,14 +14,15 @@ jobs:
       id: go
 
     - name: Build go from tip
-      uses: iwdgo/gotip-build@v0.3.0
+      uses: iwdgo/gotip-build@master
       id: gotip
       with:
-        go_variables: CGO_ENABLED=0 GOOS=windows GOARCH=amd64 GOROOT_FINAL=/
+        go_variables: CGO_ENABLED=0 GOOS=linux GOARCH=riscv64 GOROOT_FINAL=/
         test_build: true
 
     - name: Upload go executable
       uses: actions/upload-artifact@v3
+      if: {{ env.crosscompile == 'true' }}
       with:
-        name: gotip-${{ runner.os }}-${{ runner.arch }}
-        path: go/bin
+        name: gotip-${{ env.goos }}-${{ env.arch }}
+        path: go/bin/
