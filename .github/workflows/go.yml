@@ -14,7 +14,7 @@ jobs:
       id: go
 
     - name: Build go from tip
-      uses: iwdgo/gotip-build@master
+      uses: iwdgo/gotip-build@remove-qemu-setup
       id: gotip
       with:
         go_variables: CGO_ENABLED=0 GOOS=linux GOARCH=riscv64 GOROOT_FINAL=/
