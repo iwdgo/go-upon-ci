@@ -5,13 +5,13 @@ jobs:
   build:
     strategy:
       matrix:
-        go_arch: [amd64, arm, arm64, riscv64, s390x, 386, ppc64le]
+        go_arch: [386]
     name: Build
     runs-on: ubuntu-latest
     steps:
 
     - name: Set up Go
-      uses: actions/setup-go@v3
+      uses: actions/setup-go@v4
       with:
         go-version: 1.17.x
       id: go
