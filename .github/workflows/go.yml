@@ -33,6 +33,7 @@ jobs:
           echo "list vms" $(VBoxManage list vms)
           VBoxManage showvminfo xcompile
           VBoxManage guestproperty enumerate xcompile
+          VBoxControl guestproperty enumerate
           sleep 60
           # https://docs.freebsd.org/en/books/handbook/virtualization/#virtualization-guest-virtualbox
           # No guest facilities installed
