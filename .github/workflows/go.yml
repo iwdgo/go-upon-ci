@@ -24,7 +24,8 @@ jobs:
             freebsd-version
       - name: Freebsd
         run: |
-          VboxManage list vms
+          ls -l
+          ls -R /Users/runner/work/_actions/vmactions/freebsd-vm/
           # VBoxManage showvminfo xcompile
           # VBoxManage guestproperty enumerate xcompile
           # VBoxManage guestcontrol xcompile run --exe "/bin/ls"
