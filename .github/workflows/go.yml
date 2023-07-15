@@ -22,3 +22,10 @@ jobs:
             whoami
             env
             freebsd-version
+      - name: Freebsd
+        run: |
+          VboxManage list vms
+          # VBoxManage showvminfo xcompile
+          # VBoxManage guestproperty enumerate xcompile
+          # VBoxManage guestcontrol xcompile run --exe "/bin/ls"
+          # VBoxManage guestcontrol xcompile run --exe "/bin/uname -a"
