@@ -27,11 +27,12 @@ jobs:
           VBoxManage storageattach xcompile --storagectl IDE --port 0 --device 0 --type hdd --medium FreeBSD-13.2-RELEASE-amd64.vhd
           # VBoxManage storageattach xcompile --storagectl IDE --port 0 --device 0 --type dvddrive --medium FreeBSD-13.2-RELEASE-amd64-disc1.iso
           # VBoxManage list ostypes
-          VBoxManage startvm xcompile --type headless
+          VBoxManage startvm xcompile # --type headless
           VBoxManage debugvm xcompile logdest stdout
           # Management
-          VBoxManage list vms
+          echo "list vms" $(VBoxManage list vms)
           VBoxManage showvminfo xcompile
+          echo "Guest control"
           # https://docs.freebsd.org/en/books/handbook/virtualization/#virtualization-guest-virtualbox
           # No guest facilities installed
           VBoxManage guestcontrol xcompile run --exe "cd /usr/ports/emulators/virtualbox-ose-additions && make install clean"
