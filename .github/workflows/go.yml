@@ -3,36 +3,43 @@ on: [push]
 jobs:
 
   build:
-    strategy:
-      matrix:
-        go_arch: [386]
     name: Build
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     steps:
 
-    - name: Set up Go
-      uses: actions/setup-go@v4
-      with:
-        go-version: 1.17.x
-      id: go
+      - name: Set up Go
+        if: false
+        uses: actions/setup-go@v4
 
-    - name: Build go from tip
-      uses: iwdgo/gotip-build@master
-      id: gotip
-      with:
-        go_variables: CGO_ENABLED=0 GOOS=linux GOARCH=${{ matrix.go_arch }} GOROOT_FINAL=/
-        test_build: true
-
-    - name: Upload go executable
-      uses: actions/upload-artifact@v3
-      if: ${{ env.crosscompile == 'false' }}
-      with:
-        name: gotip-${{ env.goos }}-${{ env.goarch }}
-        path: go/bin/
-
-    - name: Upload go executable
-      uses: actions/upload-artifact@v3
-      if: ${{ env.crosscompile == 'true' }}
-      with:
-        name: gotip-${{ env.goos }}-${{ env.goarch }}
-        path: go/bin/${{ env.goos }}_${{ env.goarch }}
+      - name: Vbox
+        shell: bash
+        run: |
+          vboxmanage -v
+          # Extension pack
+          # wget https://download.virtualbox.org/virtualbox/6.1.34/Oracle_VM_VirtualBox_Extension_Pack-6.1.34.vbox-extpack
+          # echo y | sudo VBoxManage extpack install --replace Oracle_VM_VirtualBox_Extension_Pack-6.1.34.vbox-extpack
+          wget -nv https://download.freebsd.org/releases/VM-IMAGES/13.2-RELEASE/amd64/Latest/FreeBSD-13.2-RELEASE-amd64.vhd.xz
+          xz -d FreeBSD-13.2-RELEASE-amd64.vhd.xz
+          # wget -nv https://download.freebsd.org/releases/amd64/amd64/ISO-IMAGES/13.2/FreeBSD-13.2-RELEASE-amd64-disc1.iso
+          ls -l
+          VBoxManage createvm --name xcompile --ostype FreeBSD_64 --default --register
+          # VBoxManage list vms --long
+          VBoxManage storageattach xcompile --storagectl IDE --port 0 --device 0 --type hdd --medium FreeBSD-13.2-RELEASE-amd64.vhd
+          # VBoxManage storageattach xcompile --storagectl IDE --port 0 --device 0 --type dvddrive --medium FreeBSD-13.2-RELEASE-amd64-disc1.iso
+          # VBoxManage list ostypes
+          VBoxManage startvm xcompile --type headless
+          VBoxManage debugvm xcompile logdest stdout
+          # Management
+          VBoxManage list vms
+          VBoxManage showvminfo xcompile
+          # https://docs.freebsd.org/en/books/handbook/virtualization/#virtualization-guest-virtualbox
+          # No guest facilities installed
+          VBoxManage guestcontrol xcompile run --exe "cd /usr/ports/emulators/virtualbox-ose-additions && make install clean"
+          
+          # Restart
+          VBoxManage controlvm xcompile savestate
+          VBoxManage startvm xcompile --type headless 
+          # Smoke tests
+          VBoxManage guestcontrol xcompile run --exe "/bin/ls"
+          VBoxManage guestcontrol xcompile run --exe "/bin/uname -a"
+          
