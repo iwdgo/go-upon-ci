@@ -14,15 +14,19 @@ jobs:
       - name: Vbox
         shell: bash
         run: |
-          vboxmanage -v
-          VBoxManage list ostypes
+          VBoxManage -v
+          # VBoxManage list ostypes
+          VM=xcompile
           wget -nv https://cdn.netbsd.org/pub/NetBSD/NetBSD-9.3/images/NetBSD-9.3-amd64.iso
           ls -l
-          VBoxManage createvm --name xcompile --ostype NetBSD_64 --default --register
-          # VBoxManage list vms --long
-          # VBoxManage storageattach xcompile --storagectl IDE --port 0 --device 0 --type hdd --medium FreeBSD-13.2-RELEASE-amd64.vhd
-          VBoxManage storageattach xcompile --storagectl IDE --port 0 --device 0 --type dvddrive --medium NetBSD-9.3-amd64.iso
-          # VBoxManage list ostypes
+          VBoxManage createvm --name xcompile --ostype NetBSD_64 --register
+          # Devices
+          VBoxManage createhd --filename /VirtualBox/$VM/$VM.vdi --size 32768
+          VBoxManage storagectl $VM --name "SATA Controller" --add sata --controller IntelAHCI
+          VBoxManage storageattach $VM --storagectl "SATA Controller" --port 0 --device 0 --type hdd --medium /VirtualBox/$VM/$VM.vdi
+          VBoxManage storagectl $VM --name "IDE Controller" --add ide
+          VBoxManage storageattach $VM --storagectl "IDE Controller" --port 0 --device 0 --type dvddrive --medium NetBSD-9.3-amd64.iso
+          # Start
           VBoxManage startvm xcompile # --type headless
           VBoxManage debugvm xcompile logdest stdout
           # Management
@@ -31,11 +35,11 @@ jobs:
           VBoxManage guestproperty enumerate xcompile
           # https://docs.freebsd.org/en/books/handbook/virtualization/#virtualization-guest-virtualbox
           # No guest facilities installed
-          VBoxManage guestcontrol xcompile run --exe "cd /usr/ports/emulators/virtualbox-ose-additions && make install clean"
+          # VBoxManage guestcontrol xcompile run --exe "cd /usr/ports/emulators/virtualbox-ose-additions && make install clean"
           
           # Restart
-          VBoxManage controlvm xcompile savestate
-          VBoxManage startvm xcompile --type headless 
+          # VBoxManage controlvm xcompile savestate
+          # VBoxManage startvm xcompile --type headless 
           # Smoke tests
           VBoxManage guestcontrol xcompile run --exe "/bin/ls"
           VBoxManage guestcontrol xcompile run --exe "/bin/uname -a"
