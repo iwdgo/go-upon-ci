@@ -21,9 +21,9 @@ jobs:
           ls -l
           VBoxManage createvm --name xcompile --ostype NetBSD_64 --register
           # Devices
-          VBoxManage createhd --filename /VirtualBox/$VM/$VM.vdi --size 32768
+          VBoxManage createhd --filename /tmp/$VM/$VM.vdi --size 32768
           VBoxManage storagectl $VM --name "SATA Controller" --add sata --controller IntelAHCI
-          VBoxManage storageattach $VM --storagectl "SATA Controller" --port 0 --device 0 --type hdd --medium /VirtualBox/$VM/$VM.vdi
+          VBoxManage storageattach $VM --storagectl "SATA Controller" --port 0 --device 0 --type hdd --medium /tmp/$VM/$VM.vdi
           VBoxManage storagectl $VM --name "IDE Controller" --add ide
           VBoxManage storageattach $VM --storagectl "IDE Controller" --port 0 --device 0 --type dvddrive --medium NetBSD-9.3-amd64.iso
           # Start
