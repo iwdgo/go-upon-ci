@@ -28,7 +28,7 @@ jobs:
           # VBoxManage unattended install xcompile --install-additions
           # VBoxManage storageattach xcompile --storagectl IDE --port 0 --device 0 --type dvddrive --medium FreeBSD-13.2-RELEASE-amd64-disc1.iso
           # VBoxManage list ostypes
-          VBoxManage modifyvm xcompile --nat-pf1 "guestssh,tcp,,2222,,22"
+          VBoxManage modifyvm xcompile --natpf1 "guestssh,tcp,,2222,,22"
           VBoxManage startvm xcompile --type headless
           # VBoxManage debugvm xcompile logdest stdout
           # Management
