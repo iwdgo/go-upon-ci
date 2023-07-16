@@ -34,10 +34,11 @@ jobs:
           # Management
           echo "list vms" $(VBoxManage list vms)
           VBoxManage showvminfo xcompile
+          VBoxManage guestproperty enumerate xcompile
           ### Use ssh
-          ssh -p 3022 root@127.0.0.1 "pwd && ls && uname -a"
+          ssh -v -p 3022 root@127.0.0.1 "pwd && ls && uname -a"
           #### No guest facility available
-          # VBoxManage guestproperty enumerate xcompile
+          # 
           # sleep 60
           # https://docs.freebsd.org/en/books/handbook/virtualization/#virtualization-guest-virtualbox
           # No guest facilities installed
