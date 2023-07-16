@@ -35,7 +35,7 @@ jobs:
           echo "list vms" $(VBoxManage list vms)
           VBoxManage showvminfo xcompile
           ### Use ssh
-          ssh -p 3022 root@127.0.0.1
+          ssh -p 3022 root@127.0.0.1 "pwd && ls && uname -a"
           #### No guest facility available
           # VBoxManage guestproperty enumerate xcompile
           # sleep 60
