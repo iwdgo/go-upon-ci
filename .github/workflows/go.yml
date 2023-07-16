@@ -35,10 +35,10 @@ jobs:
         docker run --rm --privileged tonistiigi/binfmt:latest
         export wasmer_dir=/usr/local/bin/.wasmer
         docker run -d -t --privileged -e GOWASIRUNTIME=wasmer -e WASMER_DIR=$wasmer_dir -e WASMER_CACHE_DIR=$wasmer_dir/cache --name xalpine alpine
+        docker exec xalpine apk add curl
         # docker run -d -t --privileged -e GOWASIRUNTIME=wasmer -e WASMER_DIR=$wasmer_dir -e WASMER_CACHE_DIR=$wasmer_dir/cache --name xalpine debian
-        # docker exec xalpine apk add curl
-        docker exec xalpine apt update
-        docker exec xalpine apt install curl -y
+        # docker exec xalpine apt update
+        # docker exec xalpine apt install curl -y
         docker exec xalpine sh -c 'curl https://get.wasmer.io -sSfL | sh'
         docker exec xalpine printenv
         # docker exec xalpine sh -c 'ls -alR $WASMER_DIR'
