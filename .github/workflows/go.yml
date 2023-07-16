@@ -3,9 +3,6 @@ on: [push]
 jobs:
 
   build:
-    strategy:
-      matrix:
-        go_arch: [386]
     name: Build
     runs-on: ubuntu-latest
     steps:
@@ -13,15 +10,103 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v4
       with:
-        go-version: 1.17.x
+        go-version: 1.19.x
       id: go
+
+    - name: Complete Go set up
+      shell: bash
+      run: |
+        mkdir -p $(go env GOCACHE)
+        mkdir -p $(go env GOMODCACHE)
+        mkdir -p $(dirname $(go env GOENV))
+        mkdir -p $(go env GOPATH)/bin
+        echo $PATH
 
     - name: Build go from tip
       uses: iwdgo/gotip-build@master
+      if: false
       id: gotip
       with:
-        go_variables: CGO_ENABLED=0 GOOS=linux GOARCH=${{ matrix.go_arch }} GOROOT_FINAL=/
-        test_build: true
+        go_variables: GOOS=wasip1 GOARCH=wasm GOROOT_FINAL=/home/runner/work/gotip-build/gotip-build/go
+        test_build: false
+
+    - name: Install wasmer
+      run: |
+        docker run --rm --privileged tonistiigi/binfmt:latest
+        export wasmer_dir=/usr/local/bin/.wasmer
+        # docker run -d -t --privileged -e GOWASIRUNTIME=wasmer -e WASMER_DIR=$wasmer_dir -e WASMER_CACHE_DIR=$wasmer_dir/cache --name xalpine alpine
+        docker run -d -t --privileged -e GOWASIRUNTIME=wasmer -e WASMER_DIR=$wasmer_dir -e WASMER_CACHE_DIR=$wasmer_dir/cache --name xalpine debian
+        # docker exec xalpine apk add curl
+        docker exec xalpine apt update
+        docker exec xalpine apt install curl -y
+        docker exec xalpine sh -c 'curl https://get.wasmer.io -sSfL | sh'
+        docker exec xalpine printenv
+        docker exec xalpine sh -c 'ls -alR $WASMER_DIR'
+        docker exec xalpine sh -c '$WASMER_DIR/bin/wasmer-headless -V'
+        docker exec xalpine sh -c '$WASMER_DIR/bin/wasmer-headless config'
+        docker exec xalpine sh -c 'wasmer -V'
+        # Warning: wasmer has been compiled for glibc, and is thus likely dynamically linked. Invoking wasm binaries in chroots or mount namespaces (lxc, docker, ...) may not work.
+        #error: Open binfmt misc for registration
+        #╰─▶ 1: No such file or directory (os error 2)
+        docker exec xalpine sh -c '$WASMER_DIR/bin/wasmer-headless binfmt register '
+
+    - name: Install QEMU
+      if: true
+      run: |
+        # docker exec xalpine apt install qemu-kvm qemu-system qemu-utils python3 python3-pip libvirt-clients libvirt-daemon-system bridge-utils virtinst libvirt-daemon virt-manager -y
+
+    - name: Test using QEMU
+      if: false
+      shell: bash
+      run: |
+        export tooldir=wasip1_wasm
+        docker cp ./go/bin/$tooldir/. xalpine:/usr/local/bin/ # in $PATH
+        # create directories
+        docker exec xalpine mkdir -p /tmp/go/src/cmd/go/
+        docker exec xalpine mkdir /tmp/go/bin/
+        docker exec xalpine mkdir -p /tmp/go/lib/time/
+        docker exec xalpine mkdir /tmp/go/misc/
+        docker exec xalpine mkdir -p /tmp/go/pkg/include/
+        docker exec xalpine mkdir /tmp/go/pkg/temp/
+        docker exec xalpine mkdir -p /tmp/go/pkg/tool/$tooldir/
+        docker exec xalpine mkdir -p /tmp/go/test/bench/
+        docker exec xalpine mkdir /tmp/go/test/chan/
+        docker exec xalpine mkdir /tmp/go/test/dwarf/
+        docker exec xalpine mkdir /tmp/go/test/fixedbugs/
+        docker exec xalpine mkdir /tmp/go/test/interface/
+        docker exec xalpine mkdir /tmp/go/test/ken/
+        docker exec xalpine mkdir /tmp/go/test/syntax/
+        docker exec xalpine mkdir /tmp/go/test/typeparam/
+        # Go variables
+        docker exec xalpine mkdir -p /root/.config/go/ # GOENV
+        docker exec xalpine mkdir -p /root/.cache/go-build/ # GOCACHE
+        docker exec xalpine mkdir -p /root/go/pkg/mod/ # GOMODCACHE
+        docker exec xalpine mkdir /tmp/go-build/
+        # copy executables, include directory
+        docker cp ./go/VERSION.cache xalpine:/tmp/go/
+        docker cp ./go/bin/$tooldir/. xalpine:/tmp/go/bin/
+        docker cp ./go/pkg/tool/$tooldir/. xalpine:/tmp/go/pkg/tool/$tooldir/
+        docker cp ./go/misc/. xalpine:/tmp/go/misc/
+        docker cp ./go/lib/time/zoneinfo.zip xalpine:/tmp/go/lib/time/zoneinfo.zip
+        docker cp ./go/pkg/include/. xalpine:/tmp/go/pkg/include/
+        docker cp ./go/src/. xalpine:/tmp/go/src/
+        docker cp ./go/test/. xalpine:/tmp/go/test/
+        # Smoke tests
+        # docker exec xalpine sh -c '$WASMER_DIR/bin/wasmer-headless binfmt register '
+        docker exec -w /tmp/go/ xalpine sh -c '$WASMER_DIR/bin/wasmer'
+        docker exec -w /tmp/go/ xalpine sh -c '$WASMER_DIR/bin/wasmer run --dir=/ --env PWD="$PWD" --env PATH="$PATH" go version'
+        docker exec -w /tmp/go/ xalpine sh -c '$WASMER_DIR/bin/wasmer run go env'
+        # Bash is the default shell when available
+        export $(cat $GITHUB_ENV | grep usebash)
+        runbash='./run.bash'
+        if [ "$usebash" == "false" ]; then runbash='/bin/sh ./run.bash'; fi
+        docker exec -w /tmp/go/src xalpine $runbash --no-rebuild
+
+    - name: Test using wasmer
+      if: true
+      run: |
+        docker exec xalpine sh -c '$WASMER_DIR/bin/wasmer -h'
+        docker exec xalpine sh -c '$WASMER_DIR/bin/wasmer binfmt register '
 
     - name: Upload go executable
       uses: actions/upload-artifact@v3
