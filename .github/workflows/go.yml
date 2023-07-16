@@ -41,10 +41,9 @@ jobs:
         docker exec xalpine apt install curl -y
         docker exec xalpine sh -c 'curl https://get.wasmer.io -sSfL | sh'
         docker exec xalpine printenv
-        docker exec xalpine sh -c 'ls -alR $WASMER_DIR'
+        # docker exec xalpine sh -c 'ls -alR $WASMER_DIR'
         docker exec xalpine sh -c '$WASMER_DIR/bin/wasmer-headless -V'
         docker exec xalpine sh -c '$WASMER_DIR/bin/wasmer-headless config'
-        docker exec xalpine sh -c 'wasmer -V'
         # Warning: wasmer has been compiled for glibc, and is thus likely dynamically linked. Invoking wasm binaries in chroots or mount namespaces (lxc, docker, ...) may not work.
         #error: Open binfmt misc for registration
         #╰─▶ 1: No such file or directory (os error 2)
