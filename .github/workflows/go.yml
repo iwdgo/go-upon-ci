@@ -36,7 +36,7 @@ jobs:
           VBoxManage showvminfo xcompile
           VBoxManage guestproperty enumerate xcompile
           ### Use ssh
-          ssh -v -p 3022 root@127.0.0.1 "pwd && ls && uname -a"
+          ssh -v -p 3022 root@127.0.0.1 pwd
           #### No guest facility available
           # 
           # sleep 60
