@@ -25,7 +25,7 @@ jobs:
           VBoxManage createvm --name xcompile --ostype FreeBSD_64 --default --register
           # VBoxManage list vms --long
           VBoxManage storageattach xcompile --storagectl IDE --port 0 --device 0 --type hdd --medium FreeBSD-13.2-RELEASE-amd64.vhd
-          VBoxManage unattended install xcompile --install-additions
+          # VBoxManage unattended install xcompile --install-additions
           # VBoxManage storageattach xcompile --storagectl IDE --port 0 --device 0 --type dvddrive --medium FreeBSD-13.2-RELEASE-amd64-disc1.iso
           # VBoxManage list ostypes
           VBoxManage startvm xcompile --type headless
