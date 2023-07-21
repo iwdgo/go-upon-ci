@@ -43,7 +43,7 @@ jobs:
           VBoxManage guestproperty enumerate xcompile
           # VBoxManage debugvm xcompile logdest stdout
           ### Use ssh
-          sshpass -p root ssh -v -T -p 3022 root@127.0.0.1 "bash pwd"
+          ssh -v -T -p 3022 root@127.0.0.1 "bash pwd"
           root
           #### No guest facility available
           # 
