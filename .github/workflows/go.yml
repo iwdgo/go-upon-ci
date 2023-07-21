@@ -30,9 +30,9 @@ jobs:
           # VBoxManage unattended install xcompile --install-additions
           # VBoxManage storageattach xcompile --storagectl IDE --port 0 --device 0 --type dvddrive --medium FreeBSD-13.2-RELEASE-amd64-disc1.iso
           # VBoxManage list ostypes
-          cat '/Users/runner/VirtualBox VMs/xcompile/xcompile.vbox'
+          # cat '/Users/runner/VirtualBox VMs/xcompile/xcompile.vbox'
           VBoxManage natnetwork add --netname natnet1 --network "192.168.15.0/24" --enable
-          VBoxManage modifyvm xcompile natpf1 "ssh,tcp,127.0.10.1,3022,192.168.15.0,22"
+          VBoxManage modifyvm xcompile --natpf1 "ssh,tcp,127.0.10.1,3022,192.168.15.0,22"
           VBoxManage startvm xcompile --type headless
           # VBoxManage debugvm xcompile logdest stdout
           # Management
