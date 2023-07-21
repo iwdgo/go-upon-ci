@@ -31,7 +31,7 @@ jobs:
           # VBoxManage list ostypes
           # cat '/Users/runner/VirtualBox VMs/xcompile/xcompile.vbox'
           # Configuration
-          netstat -ntlp | grep -i ssh
+          # netstat -ntlp | grep -i ssh
           # Set up
           VBoxManage natnetwork add --netname natnet1 --network "192.168.15.0/24" --enable
           VBoxManage modifyvm xcompile --natpf1 "ssh,tcp,127.0.0.1,3022,192.168.15.0,22"
