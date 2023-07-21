@@ -4,7 +4,7 @@ jobs:
 
   build:
     name: Build
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     steps:
 
       - name: Set up Go
@@ -33,7 +33,7 @@ jobs:
           # Configuration
           # netstat -ntlp | grep -i ssh
           # Set up
-          sudo apt-get install sshpass
+          brew install sshpass
           # VBoxManage natnetwork add --netname natnet1 --network "192.168.15.0/24" --enable
           # VBoxManage modifyvm xcompile --natpf1 "ssh,tcp,127.0.0.1,3022,192.168.15.0,22"
           VBoxManage modifyvm xcompile --natpf1 "ssh,tcp,,3022,,22"
