@@ -33,6 +33,7 @@ jobs:
           # Configuration
           # netstat -ntlp | grep -i ssh
           # Set up
+          sudo apt-get install sshpass
           # VBoxManage natnetwork add --netname natnet1 --network "192.168.15.0/24" --enable
           # VBoxManage modifyvm xcompile --natpf1 "ssh,tcp,127.0.0.1,3022,192.168.15.0,22"
           VBoxManage modifyvm xcompile --natpf1 "ssh,tcp,,3022,,22"
@@ -43,7 +44,7 @@ jobs:
           VBoxManage guestproperty enumerate xcompile
           # VBoxManage debugvm xcompile logdest stdout
           ### Use ssh
-          ssh -v -T -p 3022 root@127.0.0.1 "bash pwd"
+          sshpass -p root ssh -v -T -p 3022 root@127.0.0.1 "bash pwd"
           #### No guest facility available
           # 
           # sleep 60
