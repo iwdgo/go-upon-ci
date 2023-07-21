@@ -26,16 +26,16 @@ jobs:
           VBoxManage createvm --name xcompile --ostype FreeBSD_64 --default --register
           # VBoxManage list vms --long
           VBoxManage storageattach xcompile --storagectl IDE --port 0 --device 0 --type hdd --medium FreeBSD-13.2-RELEASE-amd64.vhd
+          VBoxManage showvminfo xcompile
           # VBoxManage unattended install xcompile --install-additions
           # VBoxManage storageattach xcompile --storagectl IDE --port 0 --device 0 --type dvddrive --medium FreeBSD-13.2-RELEASE-amd64-disc1.iso
           # VBoxManage list ostypes
-          VBoxManage natnetwork add --netname natnet1 --network "127.0.10.1/24" --enable
+          VBoxManage natnetwork add --netname natnet1 --network 127.0.10.1/24 --enable
           VBoxManage modifyvm xcompile --natpf1 "ssh,tcp,127.0.10.1,3022,,22"
           VBoxManage startvm xcompile --type headless
           # VBoxManage debugvm xcompile logdest stdout
           # Management
           echo "list vms" $(VBoxManage list vms)
-          VBoxManage showvminfo xcompile
           VBoxManage guestproperty enumerate xcompile
           ### Use ssh
           ssh -v -p 3022 root@127.0.10.1 pwd
