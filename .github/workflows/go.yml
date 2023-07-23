@@ -24,5 +24,5 @@ jobs:
 
     - name: Docker commands
       run: |
-        docker run --rm --privileged multiarch/qemu-user-static:mips64el --reset -p yes
+        docker run --rm --privileged --reset -p yes multiarch/qemu-user-static:mips64el
         docker run -d -t --platform mips64le --name xcompile mips64le/debian
