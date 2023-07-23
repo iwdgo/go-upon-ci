@@ -28,7 +28,7 @@ jobs:
         wget https://github.com/qemu/qemu/blob/master/scripts/qemu-binfmt-conf.sh
         ls -a qemu-binfmt-conf.sh
         chmod +x qemu-binfmt-conf.sh
-        ./qemu-binfmt-conf.sh 
+        ./qemu-binfmt-conf.sh --qemu-suffix "-static"
         docker run -d -t --platform mips64le --name xalpine mips64le/debian
         docker exec xalpine mkdir -p /tmp/go/src/cmd/go/
         docker exec xalpine uname
