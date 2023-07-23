@@ -24,7 +24,11 @@ jobs:
 
     - name: Docker commands
       run: |
-        docker run -t -rm --privileged multiarch/qemu-user-static:mips64el uname -m
+        # docker run -rm --privileged multiarch/qemu-user-static:x86_64:mips64el
+        wget https://github.com/qemu/qemu/blob/master/scripts/qemu-binfmt-conf.sh
+        ls -a qemu-binfmt-conf.sh
+        chmod +x /qemu-binfmt-conf.sh
+        ./qemu-binfmt-conf.sh 
         docker run -d -t --platform mips64le --name xalpine mips64le/debian
         docker exec xalpine mkdir -p /tmp/go/src/cmd/go/
         docker exec xalpine uname
