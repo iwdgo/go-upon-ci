@@ -26,7 +26,7 @@ jobs:
       run: |
         # docker run --rm --privileged multiarch/qemu-user-static:x86_64:mips64el
         # https://gitlab.com/qemu-project/qemu/container_registry/1222355
-        docker run --rm --privileged registry.qemu.com/qemu-project/qemu/qemu/debian-mips64el-cross:latest
+        docker run --rm --privileged registry.gitlab.com/qemu-project/qemu/debian-mips64el-cross:latest
         #
         docker run -d -t --platform mips64le --name xalpine mips64le/debian
         docker exec xalpine mkdir -p /tmp/go/src/cmd/go/
