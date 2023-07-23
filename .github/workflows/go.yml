@@ -24,7 +24,7 @@ jobs:
 
     - name: Docker commands
       run: |
-        docker pull multiarch/qemu-user-static:mips64el
-        docker run -d -t --privileged --platform mips64le --name xalpine mips64le/debian
+        docker run -t -rm --privileged multiarch/qemu-user-static:mips64el uname -m
+        docker run -d -t --platform mips64le --name xalpine mips64le/debian
         docker exec xalpine mkdir -p /tmp/go/src/cmd/go/
         docker exec xalpine uname
