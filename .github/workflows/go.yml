@@ -3,9 +3,6 @@ on: [push]
 jobs:
 
   build:
-    strategy:
-      matrix:
-        go_arch: [386]
     name: Build
     runs-on: ubuntu-latest
     steps:
@@ -13,14 +10,14 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v4
       with:
-        go-version: 1.17.x
+        go-version: 1.20.x
       id: go
 
     - name: Build go from tip
       uses: iwdgo/gotip-build@master
       id: gotip
       with:
-        go_variables: CGO_ENABLED=0 GOOS=linux GOARCH=${{ matrix.go_arch }} GOROOT_FINAL=/
+        go_variables: GOROOT_FINAL=/
         test_build: true
 
     - name: Upload go executable
