@@ -1,0 +1,63 @@
+From b3d8b9601fcffb344dd4379e5a21ada075b2647d Mon Sep 17 00:00:00 2001
+From: Constantin Konstantinidis <constantinkonstantinidis@gmail.com>
+Date: Sun, 7 May 2023 12:11:15 +0200
+Subject: [PATCH] encoding/xml: display closing space in error message
+
+Fixes #48890
+
+Change-Id: I15f79621dac87bc2f5086e2bc2fc41b1010931fd
+---
+ src/encoding/xml/xml.go      | 8 ++++++--
+ src/encoding/xml/xml_test.go | 6 ++++--
+ 2 files changed, 10 insertions(+), 4 deletions(-)
+
+diff --git a/src/encoding/xml/xml.go b/src/encoding/xml/xml.go
+index 73eedad290..0dd8b218cd 100644
+--- a/src/encoding/xml/xml.go
++++ b/src/encoding/xml/xml.go
+@@ -492,8 +492,12 @@ func (d *Decoder) popElement(t *EndElement) bool {
+ 		d.err = d.syntaxError("element <" + s.name.Local + "> closed by </" + name.Local + ">")
+ 		return false
+ 	case s.name.Space != name.Space:
+-		d.err = d.syntaxError("element <" + s.name.Local + "> in space " + s.name.Space +
+-			" closed by </" + name.Local + "> in space " + name.Space)
++		ns := "no name space"
++		if name.Space != "" {
++			ns = fmt.Sprintf("name space %s", name.Space)
++		}
++		d.err = d.syntaxError(fmt.Sprintf("element <%s> in name space %s closed by </%s> in %s",
++			s.name.Local, s.name.Space, name.Local, ns))
+ 		return false
+ 	}
+ 
+diff --git a/src/encoding/xml/xml_test.go b/src/encoding/xml/xml_test.go
+index 42f5f5f8a6..ff8da8e896 100644
+--- a/src/encoding/xml/xml_test.go
++++ b/src/encoding/xml/xml_test.go
+@@ -1334,11 +1334,13 @@ func TestParseErrors(t *testing.T) {
+ 		err string
+ 	}{
+ 		{withDefaultHeader(`</foo>`), `unexpected end element </foo>`},
+-		{withDefaultHeader(`<x:foo></y:foo>`), `element <foo> in space x closed by </foo> in space y`},
++		{withDefaultHeader(`<x:foo></y:foo>`), `element <foo> in name space x closed by </foo> in name space y`},
+ 		{withDefaultHeader(`<? not ok ?>`), `expected target name after <?`},
+ 		{withDefaultHeader(`<!- not ok -->`), `invalid sequence <!- not part of <!--`},
+ 		{withDefaultHeader(`<!-? not ok -->`), `invalid sequence <!- not part of <!--`},
+ 		{withDefaultHeader(`<![not ok]>`), `invalid <![ sequence`},
++		{withDefaultHeader(`<zzz:foo xmlns:zzz="http://example.com"><bar>baz</bar></foo>`),
++			`element <foo> in name space zzz closed by </foo> in no name space`},
+ 		{withDefaultHeader("\xf1"), `invalid UTF-8`},
+ 
+ 		// Header-related errors.
+@@ -1370,7 +1372,7 @@ func TestParseErrors(t *testing.T) {
+ 			continue
+ 		}
+ 		if !strings.Contains(err.Error(), test.err) {
+-			t.Errorf("parse %s: can't find %q error sudbstring\nerror: %q", test.src, test.err, err)
++			t.Errorf("parse %s: can't find %q error substring\nerror: %q", test.src, test.err, err)
+ 			continue
+ 		}
+ 	}
+-- 
+2.37.3.windows.1
+
