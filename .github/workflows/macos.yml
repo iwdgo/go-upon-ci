@@ -1,5 +1,11 @@
 name: macos
-on: [push]
+on:
+  push:
+    branches:
+      - 'issue62047'
+    paths:
+      - '0001-cmd-remove-support-for-GOROOT_FINAL.patch'
+      - '.github/workflows/macos.yml'
 jobs:
 
   build:
