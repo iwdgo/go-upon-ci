@@ -1,4 +1,4 @@
-From 8f7a9dadc27069ab0131dc674c4cfb9a1e89ad9a Mon Sep 17 00:00:00 2001
+From 035c8e5b37c92ae61a77125ebeccd7f7f551e3a2 Mon Sep 17 00:00:00 2001
 From: Constantin Konstantinidis <constantinkonstantinidis@gmail.com>
 Date: Sun, 5 Nov 2023 10:35:12 +0100
 Subject: [PATCH] cmd: remove support for GOROOT_FINAL
@@ -25,7 +25,7 @@ Change-Id: If7811c1eb9073fb09b7006076998f8b2e1810bfb
  .../script/goroot_executable_trimpath.txt     | 11 +----
  .../internal/bootstrap_test/reboot_test.go    |  2 +-
  src/cmd/internal/moddeps/moddeps_test.go      |  2 -
- src/cmd/link/internal/ld/main.go              |  2 +-
+ src/cmd/link/internal/ld/main.go              |  4 +-
  src/cmd/link/internal/ld/pcln.go              | 11 +----
  src/cmd/objdump/objdump_test.go               |  3 --
  src/internal/testenv/testenv.go               |  6 +--
@@ -34,7 +34,7 @@ Change-Id: If7811c1eb9073fb09b7006076998f8b2e1810bfb
  src/make.rc                                   |  3 --
  src/runtime/runtime-gdb_test.go               |  6 +--
  src/runtime/runtime-lldb_test.go              |  3 --
- 27 files changed, 25 insertions(+), 192 deletions(-)
+ 27 files changed, 26 insertions(+), 193 deletions(-)
  delete mode 100644 src/cmd/go/testdata/script/build_issue48319.txt
 
 diff --git a/src/cmd/addr2line/addr2line_test.go b/src/cmd/addr2line/addr2line_test.go
@@ -531,14 +531,16 @@ index ae890b66cb..20b30c4c1d 100644
  					"PATH="+filepath.Join(gorootCopyDir, "bin")+string(filepath.ListSeparator)+
  						bundleDir+string(filepath.ListSeparator)+os.Getenv("PATH"),
 diff --git a/src/cmd/link/internal/ld/main.go b/src/cmd/link/internal/ld/main.go
-index e120f90a22..54f09ee309 100644
+index e120f90a22..93c4e0d749 100644
 --- a/src/cmd/link/internal/ld/main.go
 +++ b/src/cmd/link/internal/ld/main.go
-@@ -168,7 +168,7 @@ func Main(arch *sys.Arch, theArch Arch) {
+@@ -167,8 +167,8 @@ func Main(arch *sys.Arch, theArch Arch) {
+ 		}
  	}
  
- 	if final := gorootFinal(); final == "$GOROOT" {
+-	if final := gorootFinal(); final == "$GOROOT" {
 -		// cmd/go sets GOROOT_FINAL to the dummy value "$GOROOT" when -trimpath is set,
++	if final := buildcfg.GOROOT; final == "$GOROOT" {
 +		// cmd/go does not set any value when -trimpath is set
  		// but runtime.GOROOT() should return the empty string, not a bogus value.
  		// (See https://go.dev/issue/51461.)
