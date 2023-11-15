@@ -1,4 +1,4 @@
-From 035c8e5b37c92ae61a77125ebeccd7f7f551e3a2 Mon Sep 17 00:00:00 2001
+From b01fc917f6ebfb3bb5f3072db5d1372ecab8cd27 Mon Sep 17 00:00:00 2001
 From: Constantin Konstantinidis <constantinkonstantinidis@gmail.com>
 Date: Sun, 5 Nov 2023 10:35:12 +0100
 Subject: [PATCH] cmd: remove support for GOROOT_FINAL
@@ -8,7 +8,7 @@ Fixes #62047
 Change-Id: If7811c1eb9073fb09b7006076998f8b2e1810bfb
 ---
  src/cmd/addr2line/addr2line_test.go           | 20 ++------
- src/cmd/dist/build.go                         | 21 +--------
+ src/cmd/dist/build.go                         |  9 +---
  src/cmd/go/alldocs.go                         |  5 --
  src/cmd/go/go_test.go                         |  7 ---
  src/cmd/go/internal/cfg/cfg.go                | 13 ------
@@ -34,7 +34,7 @@ Change-Id: If7811c1eb9073fb09b7006076998f8b2e1810bfb
  src/make.rc                                   |  3 --
  src/runtime/runtime-gdb_test.go               |  6 +--
  src/runtime/runtime-lldb_test.go              |  3 --
- 27 files changed, 26 insertions(+), 193 deletions(-)
+ 27 files changed, 25 insertions(+), 182 deletions(-)
  delete mode 100644 src/cmd/go/testdata/script/build_issue48319.txt
 
 diff --git a/src/cmd/addr2line/addr2line_test.go b/src/cmd/addr2line/addr2line_test.go
@@ -78,18 +78,10 @@ index 0ea8994b6a..e99b912746 100644
  	testenv.MustHaveGoBuild(t)
  
 diff --git a/src/cmd/dist/build.go b/src/cmd/dist/build.go
-index 32e59b446a..607f0e8258 100644
+index 32e59b446a..5c73e3168d 100644
 --- a/src/cmd/dist/build.go
 +++ b/src/cmd/dist/build.go
-@@ -39,7 +39,6 @@ var (
- 	gomips64         string
- 	goppc64          string
- 	goroot           string
--	goroot_final     string
- 	goextlinkenabled string
- 	gogcflags        string // For running built compiler
- 	goldflags        string
-@@ -125,13 +124,7 @@ func xinit() {
+@@ -125,13 +125,7 @@ func xinit() {
  	// it will be found in the current directory and refuse to exec.
  	// All exec calls rewrite "go" into gorootBinGo.
  	gorootBinGo = pathf("%s/bin/go", goroot)
@@ -100,11 +92,11 @@ index 32e59b446a..607f0e8258 100644
 -	}
 -	goroot_final = b
 -
-+	b = goroot
++	goroot_final = goroot
  	b = os.Getenv("GOOS")
  	if b == "" {
  		b = gohostos
-@@ -237,7 +230,6 @@ func xinit() {
+@@ -237,7 +231,6 @@ func xinit() {
  	os.Setenv("GOMIPS64", gomips64)
  	os.Setenv("GOPPC64", goppc64)
  	os.Setenv("GOROOT", goroot)
@@ -112,31 +104,6 @@ index 32e59b446a..607f0e8258 100644
  
  	// Set GOBIN to GOROOT/bin. The meaning of GOBIN has drifted over time
  	// (see https://go.dev/issue/3269, https://go.dev/cl/183058,
-@@ -1851,10 +1843,7 @@ func banner() {
- 	xprintf("Installed Go for %s/%s in %s\n", goos, goarch, goroot)
- 	xprintf("Installed commands in %s\n", gorootBin)
- 
--	if !xsamefile(goroot_final, goroot) {
--		// If the files are to be moved, don't check that gobin
--		// is on PATH; assume they know what they are doing.
--	} else if gohostos == "plan9" {
-+	if gohostos == "plan9" {
- 		// Check that GOROOT/bin is bound before /bin.
- 		pid := strings.Replace(readfile("#c/pid"), " ", "", -1)
- 		ns := fmt.Sprintf("/proc/%s/ns", pid)
-@@ -1879,12 +1868,6 @@ func banner() {
- 			xprintf("*** You need to add %s to your PATH.\n", gorootBin)
- 		}
- 	}
--
--	if !xsamefile(goroot_final, goroot) {
--		xprintf("\n"+
--			"The binaries expect %s to be copied or moved to %s\n",
--			goroot, goroot_final)
--	}
- }
- 
- // Version prints the Go version.
 diff --git a/src/cmd/go/alldocs.go b/src/cmd/go/alldocs.go
 index a5148ad486..a448ba0ae1 100644
 --- a/src/cmd/go/alldocs.go
