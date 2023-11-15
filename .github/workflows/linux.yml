@@ -31,7 +31,7 @@ jobs:
       uses: iwdgo/gotip-build@issue62047
       id: gotip
       with:
-        go_variables: GOOS=linux GOARCH=${{ matrix.go_arch }}
+        go_variables: GOOS=linux GOARCH=${{ matrix.go_arch }} GO_TEST_SHORT=0 GO_TEST_TIMEOUT_SCALE=5
         test_build: true
 
     - name: Upload go executable
