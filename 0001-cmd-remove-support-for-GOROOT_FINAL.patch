@@ -1,4 +1,4 @@
-From 4334bac634da23238a0acad94db2e91b5ae7e3f5 Mon Sep 17 00:00:00 2001
+From 07e231702de2285915159cca87dbca004a356ec3 Mon Sep 17 00:00:00 2001
 From: Constantin Konstantinidis <constantinkonstantinidis@gmail.com>
 Date: Sun, 5 Nov 2023 10:35:12 +0100
 Subject: [PATCH] cmd: remove support for GOROOT_FINAL
@@ -8,7 +8,7 @@ Fixes #62047
 Change-Id: If7811c1eb9073fb09b7006076998f8b2e1810bfb
 ---
  src/cmd/addr2line/addr2line_test.go           | 20 ++------
- src/cmd/dist/build.go                         | 43 -----------------
+ src/cmd/dist/build.go                         | 19 +-------
  src/cmd/go/alldocs.go                         |  5 --
  src/cmd/go/go_test.go                         |  7 ---
  src/cmd/go/internal/cfg/cfg.go                | 13 ------
@@ -21,8 +21,8 @@ Change-Id: If7811c1eb9073fb09b7006076998f8b2e1810bfb
  src/cmd/go/testdata/script/README             |  3 +-
  .../go/testdata/script/build_issue48319.txt   | 46 -------------------
  src/cmd/go/testdata/script/build_trimpath.txt |  8 +---
- .../testdata/script/build_trimpath_goroot.txt | 17 +++----
- .../script/goroot_executable_trimpath.txt     | 27 +++++------
+ .../testdata/script/build_trimpath_goroot.txt | 14 ++----
+ .../script/goroot_executable_trimpath.txt     | 24 +++++-----
  .../internal/bootstrap_test/reboot_test.go    |  2 +-
  src/cmd/internal/moddeps/moddeps_test.go      |  2 -
  src/cmd/link/internal/ld/main.go              |  4 +-
@@ -34,7 +34,7 @@ Change-Id: If7811c1eb9073fb09b7006076998f8b2e1810bfb
  src/make.rc                                   |  3 --
  src/runtime/runtime-gdb_test.go               |  6 +--
  src/runtime/runtime-lldb_test.go              |  3 --
- 27 files changed, 39 insertions(+), 230 deletions(-)
+ 27 files changed, 36 insertions(+), 203 deletions(-)
  delete mode 100644 src/cmd/go/testdata/script/build_issue48319.txt
 
 diff --git a/src/cmd/addr2line/addr2line_test.go b/src/cmd/addr2line/addr2line_test.go
@@ -78,7 +78,7 @@ index 0ea8994b6a..e99b912746 100644
  	testenv.MustHaveGoBuild(t)
  
 diff --git a/src/cmd/dist/build.go b/src/cmd/dist/build.go
-index 32e59b446a..54600b1c92 100644
+index 32e59b446a..f3316438bc 100644
 --- a/src/cmd/dist/build.go
 +++ b/src/cmd/dist/build.go
 @@ -39,7 +39,6 @@ var (
@@ -110,39 +110,22 @@ index 32e59b446a..54600b1c92 100644
  
  	// Set GOBIN to GOROOT/bin. The meaning of GOBIN has drifted over time
  	// (see https://go.dev/issue/3269, https://go.dev/cl/183058,
-@@ -1850,41 +1842,6 @@ func banner() {
- 	xprintf("---\n")
+@@ -1851,10 +1843,7 @@ func banner() {
  	xprintf("Installed Go for %s/%s in %s\n", goos, goarch, goroot)
  	xprintf("Installed commands in %s\n", gorootBin)
--
+ 
 -	if !xsamefile(goroot_final, goroot) {
 -		// If the files are to be moved, don't check that gobin
 -		// is on PATH; assume they know what they are doing.
 -	} else if gohostos == "plan9" {
--		// Check that GOROOT/bin is bound before /bin.
--		pid := strings.Replace(readfile("#c/pid"), " ", "", -1)
--		ns := fmt.Sprintf("/proc/%s/ns", pid)
--		if !strings.Contains(readfile(ns), fmt.Sprintf("bind -b %s /bin", gorootBin)) {
--			xprintf("*** You need to bind %s before /bin.\n", gorootBin)
--		}
--	} else {
--		// Check that GOROOT/bin appears in $PATH.
--		pathsep := ":"
--		if gohostos == "windows" {
--			pathsep = ";"
--		}
--		path := os.Getenv("PATH")
--		if p, ok := os.LookupEnv("DIST_UNMODIFIED_PATH"); ok {
--			// Scripts that modify $PATH and then run dist should also provide
--			// dist with an unmodified copy of $PATH via $DIST_UNMODIFIED_PATH.
--			// Use it here when determining if the user still needs to update
--			// their $PATH. See go.dev/issue/42563.
--			path = p
--		}
--		if !strings.Contains(pathsep+path+pathsep, pathsep+gorootBin+pathsep) {
--			xprintf("*** You need to add %s to your PATH.\n", gorootBin)
--		}
--	}
++	if gohostos == "plan9" {
+ 		// Check that GOROOT/bin is bound before /bin.
+ 		pid := strings.Replace(readfile("#c/pid"), " ", "", -1)
+ 		ns := fmt.Sprintf("/proc/%s/ns", pid)
+@@ -1879,12 +1868,6 @@ func banner() {
+ 			xprintf("*** You need to add %s to your PATH.\n", gorootBin)
+ 		}
+ 	}
 -
 -	if !xsamefile(goroot_final, goroot) {
 -		xprintf("\n"+
@@ -467,7 +450,7 @@ index 2a2aa2080a..95cba3f85a 100644
  
  # Two binaries built from identical packages in different directories
 diff --git a/src/cmd/go/testdata/script/build_trimpath_goroot.txt b/src/cmd/go/testdata/script/build_trimpath_goroot.txt
-index a26cfd23be..bed8a80088 100644
+index a26cfd23be..48b0520860 100644
 --- a/src/cmd/go/testdata/script/build_trimpath_goroot.txt
 +++ b/src/cmd/go/testdata/script/build_trimpath_goroot.txt
 @@ -4,11 +4,6 @@
@@ -491,23 +474,20 @@ index a26cfd23be..bed8a80088 100644
  # should cause runtime.GOROOT() to report either the correct GOROOT
  # (without -trimpath) or no GOROOT at all (with -trimpath).
  
-@@ -31,10 +26,11 @@ env GOROOT=
- exec ./example.exe
+@@ -32,9 +27,9 @@ exec ./example.exe
  stdout '^GOROOT '$TESTGO_GOROOT'$'
  stdout '^runtime '$TESTGO_GOROOT${/}src${/}runtime'$'
--
+ 
 -! exec ./example-trimpath.exe
 -stdout '^GOROOT $'
 -stderr 'cannot find package "runtime" in any of:\n\t\(\$GOROOT not set\)\n\t'$WORK${/}gopath${/}src${/}runtime' \(from \$GOPATH\)\n\z'
 +exec ./example-trimpath.exe
-+# stdout '^GOROOT $'
-+# stderr 'cannot find package "runtime" in any of:\n\t\(\$GOROOT not set\)\n\t'$WORK${/}gopath${/}src${/}runtime' \(from \$GOPATH\)\n\z'
 +stdout GOROOT /home/runner/work/go-upon-ci/go-upon-ci/go
 +stdout runtime /home/runner/work/go-upon-ci/go-upon-ci/go/src/runtime
  
  exec ./example.test.exe -test.v
  stdout '^GOROOT '$TESTGO_GOROOT'$'
-@@ -52,7 +48,6 @@ stderr 'cannot find package "runtime" in any of:\n\t\(\$GOROOT not set\)\n\t'$WO
+@@ -52,7 +47,6 @@ stderr 'cannot find package "runtime" in any of:\n\t\(\$GOROOT not set\)\n\t'$WO
  # code).
  
  [trimpath] stop
@@ -516,7 +496,7 @@ index a26cfd23be..bed8a80088 100644
  ! go run -trimpath .
  stdout '^GOROOT $'
 diff --git a/src/cmd/go/testdata/script/goroot_executable_trimpath.txt b/src/cmd/go/testdata/script/goroot_executable_trimpath.txt
-index dc1e25e606..9a78ba9be8 100644
+index dc1e25e606..2d6975edde 100644
 --- a/src/cmd/go/testdata/script/goroot_executable_trimpath.txt
 +++ b/src/cmd/go/testdata/script/goroot_executable_trimpath.txt
 @@ -11,16 +11,9 @@
@@ -551,16 +531,15 @@ index dc1e25e606..9a78ba9be8 100644
  # Relocated Executable
  # Since we built with -trimpath and the binary isn't installed in a
  # normal-looking GOROOT, this command should fail.
--
+ 
 -! exec $WORK/new/bin/go$GOEXE env GOROOT
 -stderr '^go: cannot find GOROOT directory: ''go'' binary is trimmed and GOROOT is not set$'
 +exec $WORK/new/bin/go$GOEXE env GOROOT
 +stdout /home/runner/work/go-upon-ci/go-upon-ci/go
-+# stderr '^go: cannot find GOROOT directory: ''go'' binary is trimmed and GOROOT is not set$'
  
  # Cross-compiled binaries in cmd are installed to a ${GOOS}_${GOARCH} subdirectory,
  # so we also want to try a copy there.
-@@ -42,8 +42,9 @@ stderr '^go: cannot find GOROOT directory: ''go'' binary is trimmed and GOROOT i
+@@ -42,8 +42,8 @@ stderr '^go: cannot find GOROOT directory: ''go'' binary is trimmed and GOROOT i
  # https://go.dev/issue/22315, so we don't have to do that explicitly in the
  # 'check' program we use later.)
  cp $WORK/new/bin/go$GOEXE $WORK/new/bin/${GOOS}_${GOARCH}/go$GOEXE
@@ -568,7 +547,6 @@ index dc1e25e606..9a78ba9be8 100644
 -stderr '^go: cannot find GOROOT directory: ''go'' binary is trimmed and GOROOT is not set$'
 +exec $WORK/new/bin/${GOOS}_${GOARCH}/go$GOEXE env GOROOT
 +stdout /home/runner/work/go-upon-ci/go-upon-ci/go
-+# stderr '^go: cannot find GOROOT directory: ''go'' binary is trimmed and GOROOT is not set$'
  
  # Relocated Tree:
  # If the binary is sitting in a bin dir next to ../pkg/tool, that counts as a GOROOT,
