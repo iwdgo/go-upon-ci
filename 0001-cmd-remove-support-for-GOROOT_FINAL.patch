@@ -1,4 +1,4 @@
-From 7a44209eea6aa003f90342bc4a8a3537882a5b35 Mon Sep 17 00:00:00 2001
+From 98550465bcf674aac28590e953dd703855e5a420 Mon Sep 17 00:00:00 2001
 From: Constantin Konstantinidis <constantinkonstantinidis@gmail.com>
 Date: Sun, 5 Nov 2023 10:35:12 +0100
 Subject: [PATCH] cmd: remove support for GOROOT_FINAL
@@ -547,7 +547,7 @@ index a26cfd23be..5115a118c8 100644
  env GOFLAGS=-trimpath
  go generate .
 diff --git a/src/cmd/go/testdata/script/goroot_executable_trimpath.txt b/src/cmd/go/testdata/script/goroot_executable_trimpath.txt
-index dc1e25e606..541b2e5338 100644
+index dc1e25e606..9e7ed28b22 100644
 --- a/src/cmd/go/testdata/script/goroot_executable_trimpath.txt
 +++ b/src/cmd/go/testdata/script/goroot_executable_trimpath.txt
 @@ -11,16 +11,9 @@
@@ -578,7 +578,7 @@ index dc1e25e606..541b2e5338 100644
 -! exec $WORK/new/bin/go$GOEXE env GOROOT
 -stderr '^go: cannot find GOROOT directory: ''go'' binary is trimmed and GOROOT is not set$'
 +exec $WORK/new/bin/go$GOEXE env GOROOT
-+stdout '^runtime '$TESTGO_GOROOT${/}src${/}runtime'$'
++stdout '^'$TESTGO_GOROOT'$'
  
  # Cross-compiled binaries in cmd are installed to a ${GOOS}_${GOARCH} subdirectory,
  # so we also want to try a copy there.
@@ -589,7 +589,7 @@ index dc1e25e606..541b2e5338 100644
 -! exec $WORK/new/bin/${GOOS}_${GOARCH}/go$GOEXE env GOROOT
 -stderr '^go: cannot find GOROOT directory: ''go'' binary is trimmed and GOROOT is not set$'
 +exec $WORK/new/bin/${GOOS}_${GOARCH}/go$GOEXE env GOROOT
-+stdout '^runtime '$TESTGO_GOROOT${/}src${/}runtime'$'
++stdout '^'$TESTGO_GOROOT'$'
  
  # Relocated Tree:
  # If the binary is sitting in a bin dir next to ../pkg/tool, that counts as a GOROOT,
