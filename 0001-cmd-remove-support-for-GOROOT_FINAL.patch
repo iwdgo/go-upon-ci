@@ -1,4 +1,4 @@
-From 0db1ab925e2f63a55b515ea3195b67ca38fa8c45 Mon Sep 17 00:00:00 2001
+From 7a44209eea6aa003f90342bc4a8a3537882a5b35 Mon Sep 17 00:00:00 2001
 From: Constantin Konstantinidis <constantinkonstantinidis@gmail.com>
 Date: Sun, 5 Nov 2023 10:35:12 +0100
 Subject: [PATCH] cmd: remove support for GOROOT_FINAL
@@ -20,9 +20,9 @@ Change-Id: If7811c1eb9073fb09b7006076998f8b2e1810bfb
  src/cmd/go/scriptreadme_test.go               |  1 -
  src/cmd/go/testdata/script/README             |  3 --
  .../go/testdata/script/build_issue48319.txt   | 46 -------------------
- src/cmd/go/testdata/script/build_trimpath.txt | 11 ++---
+ src/cmd/go/testdata/script/build_trimpath.txt | 18 +++-----
  .../testdata/script/build_trimpath_goroot.txt | 32 ++++++-------
- .../script/goroot_executable_trimpath.txt     | 24 +++++-----
+ .../script/goroot_executable_trimpath.txt     | 19 +++-----
  .../internal/bootstrap_test/reboot_test.go    |  2 +-
  src/cmd/internal/moddeps/moddeps_test.go      |  2 -
  src/cmd/link/internal/ld/main.go              |  4 +-
@@ -34,7 +34,7 @@ Change-Id: If7811c1eb9073fb09b7006076998f8b2e1810bfb
  src/make.rc                                   |  3 --
  src/runtime/runtime-gdb_test.go               |  6 +--
  src/runtime/runtime-lldb_test.go              |  3 --
- 27 files changed, 45 insertions(+), 215 deletions(-)
+ 27 files changed, 42 insertions(+), 220 deletions(-)
  delete mode 100644 src/cmd/go/testdata/script/build_issue48319.txt
 
 diff --git a/src/cmd/addr2line/addr2line_test.go b/src/cmd/addr2line/addr2line_test.go
@@ -418,7 +418,7 @@ index 4543303059..0000000000
 -	println(runtime.GOROOT())
 -}
 diff --git a/src/cmd/go/testdata/script/build_trimpath.txt b/src/cmd/go/testdata/script/build_trimpath.txt
-index 2a2aa2080a..3089a9a2ad 100644
+index 2a2aa2080a..ab3c7e1a0f 100644
 --- a/src/cmd/go/testdata/script/build_trimpath.txt
 +++ b/src/cmd/go/testdata/script/build_trimpath.txt
 @@ -1,9 +1,5 @@
@@ -446,7 +446,13 @@ index 2a2aa2080a..3089a9a2ad 100644
  
  # A binary from an external module built with -trimpath should not contain
  # the current workspace or GOROOT.
-@@ -60,7 +55,7 @@ stdout 'binary contains GOROOT: true'
+@@ -55,12 +50,11 @@ exec $WORK/paths-dbg.exe $WORK/paths-dbg.exe
+ stdout 'binary contains module root: true'
+ stdout 'binary contains GOROOT: true'
+ 
+-# A binary built with -trimpath should not contain the current workspace
+-# or GOROOT.
++# A binary built with -trimpath should not contain the current workspace.
  go build -overlay overlay.json -trimpath -o $WORK/paths-a.exe ./overlaydir
  exec $WORK/paths-a.exe $WORK/paths-a.exe
  stdout 'binary contains module root: false'
@@ -454,6 +460,20 @@ index 2a2aa2080a..3089a9a2ad 100644
 +stdout 'binary contains GOROOT: true'
  
  # Two binaries built from identical packages in different directories
+ # should be identical.
+@@ -79,11 +73,11 @@ exec ./paths-dbg.exe paths-dbg.exe
+ stdout 'binary contains GOPATH: true'
+ stdout 'binary contains GOROOT: true'
+ 
+-# A binary built with -trimpath should not contain GOPATH or GOROOT.
++# A binary built with -trimpath should not contain GOPATH.
+ go build -trimpath -o paths-a.exe paths
+ exec ./paths-a.exe paths-a.exe
+ stdout 'binary contains GOPATH: false'
+-stdout 'binary contains GOROOT: false'
++stdout 'binary contains GOROOT: true'
+ 
+ # Two binaries built from identical packages in different GOPATH roots
  # should be identical.
 diff --git a/src/cmd/go/testdata/script/build_trimpath_goroot.txt b/src/cmd/go/testdata/script/build_trimpath_goroot.txt
 index a26cfd23be..5115a118c8 100644
@@ -527,7 +547,7 @@ index a26cfd23be..5115a118c8 100644
  env GOFLAGS=-trimpath
  go generate .
 diff --git a/src/cmd/go/testdata/script/goroot_executable_trimpath.txt b/src/cmd/go/testdata/script/goroot_executable_trimpath.txt
-index dc1e25e606..2d6975edde 100644
+index dc1e25e606..541b2e5338 100644
 --- a/src/cmd/go/testdata/script/goroot_executable_trimpath.txt
 +++ b/src/cmd/go/testdata/script/goroot_executable_trimpath.txt
 @@ -11,16 +11,9 @@
@@ -548,36 +568,28 @@ index dc1e25e606..2d6975edde 100644
  # Instead, we build a fresh copy of the binary with known settings.
  go build -trimpath -o $WORK/new/bin/go$GOEXE cmd/go &
  go build -trimpath -o $WORK/bin/check$GOEXE check.go &
-@@ -29,12 +22,19 @@ wait
- env TESTGOROOT=$GOROOT
- env GOROOT=
+@@ -31,10 +24,10 @@ env GOROOT=
  
-+# In this test, we are specifically checking the logic for deriving
-+# the value of GOROOT from os.Executable when runtime.GOROOT is
-+# trimmed away.
-+# GOROOT changes the default behavior of runtime.GOROOT,
-+# so we explicitly clear it to remove it as a confounding variable.
-+env GOROOT=
-+
  # Relocated Executable
  # Since we built with -trimpath and the binary isn't installed in a
- # normal-looking GOROOT, this command should fail.
+-# normal-looking GOROOT, this command should fail.
++# normal-looking GOROOT, this command will display the new location.
  
 -! exec $WORK/new/bin/go$GOEXE env GOROOT
 -stderr '^go: cannot find GOROOT directory: ''go'' binary is trimmed and GOROOT is not set$'
 +exec $WORK/new/bin/go$GOEXE env GOROOT
-+stdout /home/runner/work/go-upon-ci/go-upon-ci/go
++stdout '^runtime '$TESTGO_GOROOT${/}src${/}runtime'$'
  
  # Cross-compiled binaries in cmd are installed to a ${GOOS}_${GOARCH} subdirectory,
  # so we also want to try a copy there.
-@@ -42,8 +42,8 @@ stderr '^go: cannot find GOROOT directory: ''go'' binary is trimmed and GOROOT i
+@@ -42,8 +35,8 @@ stderr '^go: cannot find GOROOT directory: ''go'' binary is trimmed and GOROOT i
  # https://go.dev/issue/22315, so we don't have to do that explicitly in the
  # 'check' program we use later.)
  cp $WORK/new/bin/go$GOEXE $WORK/new/bin/${GOOS}_${GOARCH}/go$GOEXE
 -! exec $WORK/new/bin/${GOOS}_${GOARCH}/go$GOEXE env GOROOT
 -stderr '^go: cannot find GOROOT directory: ''go'' binary is trimmed and GOROOT is not set$'
 +exec $WORK/new/bin/${GOOS}_${GOARCH}/go$GOEXE env GOROOT
-+stdout /home/runner/work/go-upon-ci/go-upon-ci/go
++stdout '^runtime '$TESTGO_GOROOT${/}src${/}runtime'$'
  
  # Relocated Tree:
  # If the binary is sitting in a bin dir next to ../pkg/tool, that counts as a GOROOT,
