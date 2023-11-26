@@ -1,4 +1,4 @@
-From 3f61d337de946fb4582deaaeb483ac3657fd1235 Mon Sep 17 00:00:00 2001
+From fcac92f9be798336d19a80b8809a4228a8a1a319 Mon Sep 17 00:00:00 2001
 From: Constantin Konstantinidis <constantinkonstantinidis@gmail.com>
 Date: Sun, 5 Nov 2023 10:35:12 +0100
 Subject: [PATCH] cmd: remove support for GOROOT_FINAL
@@ -20,7 +20,7 @@ Change-Id: If7811c1eb9073fb09b7006076998f8b2e1810bfb
  src/cmd/go/scriptreadme_test.go               |  1 -
  src/cmd/go/testdata/script/README             |  3 --
  .../go/testdata/script/build_issue48319.txt   | 46 -------------------
- src/cmd/go/testdata/script/build_trimpath.txt | 27 ++++++-----
+ src/cmd/go/testdata/script/build_trimpath.txt | 29 ++++++------
  .../testdata/script/build_trimpath_goroot.txt | 32 ++++++-------
  .../testdata/script/cgo_stale_precompiled.txt |  7 +--
  .../go/testdata/script/goroot_executable.txt  |  9 +---
@@ -36,7 +36,7 @@ Change-Id: If7811c1eb9073fb09b7006076998f8b2e1810bfb
  src/make.rc                                   |  3 --
  src/runtime/runtime-gdb_test.go               |  6 +--
  src/runtime/runtime-lldb_test.go              |  3 --
- 29 files changed, 67 insertions(+), 233 deletions(-)
+ 29 files changed, 68 insertions(+), 234 deletions(-)
  delete mode 100644 src/cmd/go/testdata/script/build_issue48319.txt
 
 diff --git a/src/cmd/addr2line/addr2line_test.go b/src/cmd/addr2line/addr2line_test.go
@@ -427,7 +427,7 @@ index 4543303059..0000000000
 -	println(runtime.GOROOT())
 -}
 diff --git a/src/cmd/go/testdata/script/build_trimpath.txt b/src/cmd/go/testdata/script/build_trimpath.txt
-index 2a2aa2080a..530c6ca1b4 100644
+index 2a2aa2080a..da1ac11c7e 100644
 --- a/src/cmd/go/testdata/script/build_trimpath.txt
 +++ b/src/cmd/go/testdata/script/build_trimpath.txt
 @@ -1,8 +1,8 @@
@@ -468,9 +468,12 @@ index 2a2aa2080a..530c6ca1b4 100644
  go mod edit -droprequire rsc.io/fortune
  
  # Two binaries built from identical packages in different directories
-@@ -55,12 +54,11 @@ exec $WORK/paths-dbg.exe $WORK/paths-dbg.exe
+@@ -53,14 +52,13 @@ cd $WORK/a/src/paths
+ go build -overlay overlay.json -o $WORK/paths-dbg.exe ./overlaydir
+ exec $WORK/paths-dbg.exe $WORK/paths-dbg.exe
  stdout 'binary contains module root: true'
- stdout 'binary contains GOROOT: true'
+-stdout 'binary contains GOROOT: true'
++stdout 'binary contains an empty GOROOT'
  
 -# A binary built with -trimpath should not contain the current workspace
 -# or GOROOT.
