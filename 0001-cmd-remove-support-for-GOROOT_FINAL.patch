@@ -1,4 +1,4 @@
-From 768c55be23aaed94574bd7ccceca2da8b7572980 Mon Sep 17 00:00:00 2001
+From 4b93a7dab0e06d2b9035a426f048938e640eabe2 Mon Sep 17 00:00:00 2001
 From: Constantin Konstantinidis <constantinkonstantinidis@gmail.com>
 Date: Sun, 5 Nov 2023 10:35:12 +0100
 Subject: [PATCH] cmd: remove support for GOROOT_FINAL
@@ -13,8 +13,8 @@ Change-Id: If7811c1eb9073fb09b7006076998f8b2e1810bfb
  src/cmd/go/go_test.go                         |  9 +---
  src/cmd/go/internal/cfg/cfg.go                | 13 ------
  src/cmd/go/internal/help/helpdoc.go           |  5 --
- src/cmd/go/internal/work/exec.go              | 12 ++---
- src/cmd/go/internal/work/gc.go                |  6 ---
+ src/cmd/go/internal/work/exec.go              | 19 ++++----
+ src/cmd/go/internal/work/gc.go                |  6 +--
  src/cmd/go/script_test.go                     |  1 -
  src/cmd/go/scriptconds_test.go                |  9 ----
  src/cmd/go/scriptreadme_test.go               |  1 -
@@ -27,7 +27,7 @@ Change-Id: If7811c1eb9073fb09b7006076998f8b2e1810bfb
  .../script/goroot_executable_trimpath.txt     | 11 +++--
  .../internal/bootstrap_test/reboot_test.go    |  2 +-
  src/cmd/internal/moddeps/moddeps_test.go      |  2 -
- src/cmd/link/internal/ld/main.go              |  4 +-
+ src/cmd/link/internal/ld/main.go              | 10 ++--
  src/cmd/link/internal/ld/pcln.go              | 11 +----
  src/cmd/objdump/objdump_test.go               |  3 --
  src/internal/testenv/testenv.go               |  6 +--
@@ -36,11 +36,11 @@ Change-Id: If7811c1eb9073fb09b7006076998f8b2e1810bfb
  src/make.rc                                   |  3 --
  src/runtime/runtime-gdb_test.go               |  6 +--
  src/runtime/runtime-lldb_test.go              |  3 --
- 29 files changed, 45 insertions(+), 227 deletions(-)
+ 29 files changed, 55 insertions(+), 230 deletions(-)
  delete mode 100644 src/cmd/go/testdata/script/build_issue48319.txt
 
 diff --git a/src/cmd/addr2line/addr2line_test.go b/src/cmd/addr2line/addr2line_test.go
-index 0ea8994b6a..e99b912746 100644
+index 0ea8994b6a..e5b0a0fdae 100644
 --- a/src/cmd/addr2line/addr2line_test.go
 +++ b/src/cmd/addr2line/addr2line_test.go
 @@ -109,32 +109,18 @@ func testAddr2Line(t *testing.T, dbgExePath, addr string) {
@@ -69,8 +69,8 @@ index 0ea8994b6a..e99b912746 100644
  	}
 -	if srcLineNo != "138" {
 -		t.Fatalf("line number = %v; want 138", srcLineNo)
-+	if s := "124"; srcLineNo != "124" {
-+		t.Fatalf("line number = %v; want %s", srcLineNo, s)
++	if want := "124"; srcLineNo != want {
++		t.Fatalf("line number = %v; want %s", srcLineNo, want)
  	}
  }
  
@@ -235,36 +235,42 @@ index c5d1e2af16..61315a6aaa 100644
  		Whether the linker should use external linking mode
  		when using -linkmode=auto with code that uses cgo.
 diff --git a/src/cmd/go/internal/work/exec.go b/src/cmd/go/internal/work/exec.go
-index ecad324886..ae29d56e7b 100644
+index ecad324886..56d65325bd 100644
 --- a/src/cmd/go/internal/work/exec.go
 +++ b/src/cmd/go/internal/work/exec.go
-@@ -259,8 +259,8 @@ func (b *Builder) buildActionID(a *Action) cache.ActionID {
+@@ -258,9 +258,12 @@ func (b *Builder) buildActionID(a *Action) cache.ActionID {
+ 		// when building things in GOROOT.
  		//
  		// The C compiler does not, but for packages in GOROOT we rewrite the path
- 		// as though -trimpath were set, so that we don't invalidate the build cache
+-		// as though -trimpath were set, so that we don't invalidate the build cache
 -		// (and especially any precompiled C archive files) when changing
 -		// GOROOT_FINAL. (See https://go.dev/issue/50183.)
-+		// (and especially any precompiled C archive files).
-+		// (See https://go.dev/issue/50183.)
++		// as though -trimpath were set. This used to be so that we did not invalidate
++		// the build cache (and especially precompiled archive files) when changing
++		// GOROOT_FINAL, but we no longer ship precompiled archive files as of Go 1.20
++		// (https://go.dev/issue/47257) and no longer support GOROOT_FINAL
++		// (https://go.dev/issue/62047).
++		// TODO(bcmills): Figure out whether this behavior is still useful.
  		//
  		// b.WorkDir is always either trimmed or rewritten to
  		// the literal string "/tmp/go-build".
-@@ -1400,11 +1400,11 @@ func (b *Builder) printLinkerConfig(h io.Writer, p *load.Package) {
+@@ -1400,11 +1403,11 @@ func (b *Builder) printLinkerConfig(h io.Writer, p *load.Package) {
  			fmt.Fprintf(h, "GOEXPERIMENT=%q\n", cfg.CleanGOEXPERIMENT)
  		}
  
 -		// The linker writes source file paths that say GOROOT_FINAL, but
-+		// The linker writes empty source file paths, but
- 		// only if -trimpath is not specified (see ld() in gc.go).
+-		// only if -trimpath is not specified (see ld() in gc.go).
 -		gorootFinal := cfg.GOROOT_FINAL
++		// The linker writes source file paths that refer to GOROOT,
++		// but only if -trimpath is not specified (see [gctoolchain.ld] in gc.go).
 +		gorootFinal := ""
  		if cfg.BuildTrimpath {
 -			gorootFinal = trimPathGoRootFinal
-+			gorootFinal = "$GOROOT"
++			gorootFinal = cfg.GOROOT
  		}
  		fmt.Fprintf(h, "GOROOT=%s\n", gorootFinal)
  
-@@ -2127,7 +2127,7 @@ func (b *Builder) ccompile(a *Action, outfile string, flags []string, file strin
+@@ -2127,7 +2130,7 @@ func (b *Builder) ccompile(a *Action, outfile string, flags []string, file strin
  	file = mkAbs(p.Dir, file)
  	outfile = mkAbs(p.Dir, outfile)
  
@@ -274,7 +280,7 @@ index ecad324886..ae29d56e7b 100644
  	// TODO(golang.org/issue/36072): cgo also generates files with #line
  	// directives pointing to the source directory. It should not generate those
 diff --git a/src/cmd/go/internal/work/gc.go b/src/cmd/go/internal/work/gc.go
-index e2a5456bde..e6aadafa84 100644
+index e2a5456bde..a3f5dacf20 100644
 --- a/src/cmd/go/internal/work/gc.go
 +++ b/src/cmd/go/internal/work/gc.go
 @@ -29,9 +29,6 @@ import (
@@ -287,16 +293,17 @@ index e2a5456bde..e6aadafa84 100644
  // The Go toolchain.
  
  type gcToolchain struct{}
-@@ -663,9 +660,6 @@ func (gcToolchain) ld(b *Builder, root *Action, targetPath, importcfg, mainpkg s
+@@ -663,8 +660,9 @@ func (gcToolchain) ld(b *Builder, root *Action, targetPath, importcfg, mainpkg s
  	}
  
  	env := []string{}
--	if cfg.BuildTrimpath {
++	// When -trimpath, GOROOT is cleared
+ 	if cfg.BuildTrimpath {
 -		env = append(env, "GOROOT_FINAL="+trimPathGoRootFinal)
--	}
++		env = append(env, "GOROOT=")
+ 	}
  	return b.Shell(root).run(dir, root.Package.ImportPath, env, cfg.BuildToolexec, base.Tool("link"), "-o", targetPath, "-importcfg", importcfg, ldflags, mainpkg)
  }
- 
 diff --git a/src/cmd/go/script_test.go b/src/cmd/go/script_test.go
 index 624c5bf501..f50e85f575 100644
 --- a/src/cmd/go/script_test.go
@@ -668,20 +675,27 @@ index ae890b66cb..20b30c4c1d 100644
  					"PATH="+filepath.Join(gorootCopyDir, "bin")+string(filepath.ListSeparator)+
  						bundleDir+string(filepath.ListSeparator)+os.Getenv("PATH"),
 diff --git a/src/cmd/link/internal/ld/main.go b/src/cmd/link/internal/ld/main.go
-index e120f90a22..1fbbe4dbac 100644
+index e120f90a22..88ff0ff9fb 100644
 --- a/src/cmd/link/internal/ld/main.go
 +++ b/src/cmd/link/internal/ld/main.go
-@@ -167,8 +167,8 @@ func Main(arch *sys.Arch, theArch Arch) {
+@@ -167,12 +167,12 @@ func Main(arch *sys.Arch, theArch Arch) {
  		}
  	}
  
 -	if final := gorootFinal(); final == "$GOROOT" {
 -		// cmd/go sets GOROOT_FINAL to the dummy value "$GOROOT" when -trimpath is set,
-+	if final := buildcfg.GOROOT; final == "$GOROOT" {
-+		// cmd/go sets the dummy value "$GOROOT" when -trimpath is set,
- 		// but runtime.GOROOT() should return the empty string, not a bogus value.
- 		// (See https://go.dev/issue/51461.)
+-		// but runtime.GOROOT() should return the empty string, not a bogus value.
+-		// (See https://go.dev/issue/51461.)
++	if buildcfg.GOROOT == "" {
++		// cmd/go clears the GOROOT variable when -trimpath is set,
++		// so omit it from the binary even if cmd/link itself has an
++		// embedded GOROOT value reported by runtime.GOROOT.
  	} else {
+-		addstrdata1(ctxt, "runtime.defaultGOROOT="+final)
++		addstrdata1(ctxt, "runtime.defaultGOROOT="+buildcfg.GOROOT)
+ 	}
+ 
+ 	buildVersion := buildcfg.Version
 diff --git a/src/cmd/link/internal/ld/pcln.go b/src/cmd/link/internal/ld/pcln.go
 index 5734b92507..ccdec4b336 100644
 --- a/src/cmd/link/internal/ld/pcln.go
