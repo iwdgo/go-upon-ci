@@ -1,4 +1,4 @@
-From 98550465bcf674aac28590e953dd703855e5a420 Mon Sep 17 00:00:00 2001
+From 768c55be23aaed94574bd7ccceca2da8b7572980 Mon Sep 17 00:00:00 2001
 From: Constantin Konstantinidis <constantinkonstantinidis@gmail.com>
 Date: Sun, 5 Nov 2023 10:35:12 +0100
 Subject: [PATCH] cmd: remove support for GOROOT_FINAL
@@ -10,7 +10,7 @@ Change-Id: If7811c1eb9073fb09b7006076998f8b2e1810bfb
  src/cmd/addr2line/addr2line_test.go           | 20 ++------
  src/cmd/dist/build.go                         | 19 +-------
  src/cmd/go/alldocs.go                         |  5 --
- src/cmd/go/go_test.go                         |  7 ---
+ src/cmd/go/go_test.go                         |  9 +---
  src/cmd/go/internal/cfg/cfg.go                | 13 ------
  src/cmd/go/internal/help/helpdoc.go           |  5 --
  src/cmd/go/internal/work/exec.go              | 12 ++---
@@ -22,7 +22,9 @@ Change-Id: If7811c1eb9073fb09b7006076998f8b2e1810bfb
  .../go/testdata/script/build_issue48319.txt   | 46 -------------------
  src/cmd/go/testdata/script/build_trimpath.txt | 18 +++-----
  .../testdata/script/build_trimpath_goroot.txt | 32 ++++++-------
- .../script/goroot_executable_trimpath.txt     | 19 +++-----
+ .../testdata/script/cgo_stale_precompiled.txt |  7 +--
+ .../go/testdata/script/goroot_executable.txt  |  9 +---
+ .../script/goroot_executable_trimpath.txt     | 11 +++--
  .../internal/bootstrap_test/reboot_test.go    |  2 +-
  src/cmd/internal/moddeps/moddeps_test.go      |  2 -
  src/cmd/link/internal/ld/main.go              |  4 +-
@@ -34,7 +36,7 @@ Change-Id: If7811c1eb9073fb09b7006076998f8b2e1810bfb
  src/make.rc                                   |  3 --
  src/runtime/runtime-gdb_test.go               |  6 +--
  src/runtime/runtime-lldb_test.go              |  3 --
- 27 files changed, 42 insertions(+), 220 deletions(-)
+ 29 files changed, 45 insertions(+), 227 deletions(-)
  delete mode 100644 src/cmd/go/testdata/script/build_issue48319.txt
 
 diff --git a/src/cmd/addr2line/addr2line_test.go b/src/cmd/addr2line/addr2line_test.go
@@ -136,10 +138,10 @@ index 32e59b446a..f3316438bc 100644
  
  // Version prints the Go version.
 diff --git a/src/cmd/go/alldocs.go b/src/cmd/go/alldocs.go
-index a5148ad486..a448ba0ae1 100644
+index a40d0556ff..04a91737e9 100644
 --- a/src/cmd/go/alldocs.go
 +++ b/src/cmd/go/alldocs.go
-@@ -2323,11 +2323,6 @@
+@@ -2325,11 +2325,6 @@
  //		See src/internal/goexperiment/flags.go for currently valid values.
  //		Warning: This variable is provided for the development and testing
  //		of the Go toolchain itself. Use beyond that purpose is unsupported.
@@ -152,7 +154,7 @@ index a5148ad486..a448ba0ae1 100644
  //		Whether the linker should use external linking mode
  //		when using -linkmode=auto with code that uses cgo.
 diff --git a/src/cmd/go/go_test.go b/src/cmd/go/go_test.go
-index bae83eb92f..5e9c48044f 100644
+index bae83eb92f..3e8a25f8bf 100644
 --- a/src/cmd/go/go_test.go
 +++ b/src/cmd/go/go_test.go
 @@ -90,10 +90,6 @@ func tooSlow(t *testing.T, reason string) {
@@ -166,16 +168,18 @@ index bae83eb92f..5e9c48044f 100644
  var testGOCACHE string
  
  var testGo string
-@@ -224,9 +220,6 @@ func TestMain(m *testing.M) {
+@@ -224,10 +220,7 @@ func TestMain(m *testing.M) {
  		testGOROOT = goEnv("GOROOT")
  		os.Setenv("TESTGO_GOROOT", testGOROOT)
  		// Ensure that GOROOT is set explicitly.
 -		// Otherwise, if the toolchain was built with GOROOT_FINAL set but has not
 -		// yet been moved to its final location, programs that invoke runtime.GOROOT
 -		// may accidentally use the wrong path.
- 		os.Setenv("GOROOT", testGOROOT)
+-		os.Setenv("GOROOT", testGOROOT)
++		// TODO os.Setenv("GOROOT", testGOROOT)
  
  		// The whole GOROOT/pkg tree was installed using the GOHOSTOS/GOHOSTARCH
+ 		// toolchain (installed in GOROOT/pkg/tool/GOHOSTOS_GOHOSTARCH).
 diff --git a/src/cmd/go/internal/cfg/cfg.go b/src/cmd/go/internal/cfg/cfg.go
 index a8daa2dfc3..906fe2f135 100644
 --- a/src/cmd/go/internal/cfg/cfg.go
@@ -215,10 +219,10 @@ index a8daa2dfc3..906fe2f135 100644
  func isSameDir(dir1, dir2 string) bool {
  	if dir1 == dir2 {
 diff --git a/src/cmd/go/internal/help/helpdoc.go b/src/cmd/go/internal/help/helpdoc.go
-index 93613ac65e..49f2380a44 100644
+index c5d1e2af16..61315a6aaa 100644
 --- a/src/cmd/go/internal/help/helpdoc.go
 +++ b/src/cmd/go/internal/help/helpdoc.go
-@@ -639,11 +639,6 @@ Special-purpose environment variables:
+@@ -641,11 +641,6 @@ Special-purpose environment variables:
  		See src/internal/goexperiment/flags.go for currently valid values.
  		Warning: This variable is provided for the development and testing
  		of the Go toolchain itself. Use beyond that purpose is unsupported.
@@ -546,19 +550,45 @@ index a26cfd23be..5115a118c8 100644
  
  env GOFLAGS=-trimpath
  go generate .
-diff --git a/src/cmd/go/testdata/script/goroot_executable_trimpath.txt b/src/cmd/go/testdata/script/goroot_executable_trimpath.txt
-index dc1e25e606..9e7ed28b22 100644
---- a/src/cmd/go/testdata/script/goroot_executable_trimpath.txt
-+++ b/src/cmd/go/testdata/script/goroot_executable_trimpath.txt
-@@ -11,16 +11,9 @@
+diff --git a/src/cmd/go/testdata/script/cgo_stale_precompiled.txt b/src/cmd/go/testdata/script/cgo_stale_precompiled.txt
+index eb7e10557b..8208e44040 100644
+--- a/src/cmd/go/testdata/script/cgo_stale_precompiled.txt
++++ b/src/cmd/go/testdata/script/cgo_stale_precompiled.txt
+@@ -1,5 +1,5 @@
+ # Regression test for https://go.dev/issue/47215 and https://go.dev/issue/50183:
+-# A mismatched $GOROOT_FINAL or missing $CC caused the C dependencies of the net
++# A missing $CC caused the C dependencies of the net
+ # package to appear stale, and it could not be rebuilt due to a missing $CC.
+ 
+ [!cgo] skip
+@@ -16,14 +16,9 @@
+ go build -x runtime/cgo
+ [!short] stderr '[/\\]cgo'$GOEXE'["]? .* -importpath runtime/cgo'
+ 
+-# https://go.dev/issue/50183: a mismatched GOROOT_FINAL caused net to be stale.
+-env oldGOROOT_FINAL=$GOROOT_FINAL
+-env GOROOT_FINAL=$WORK${/}goroot
+ go build -x runtime/cgo
+ ! stderr '[/\\]cgo'$GOEXE'["]? .* -importpath runtime/cgo'
+ 
+-env GOROOT_FINAL=$oldGOROOT_FINAL
+-
+ # https://go.dev/issue/47215: a missing $(go env CC) caused the precompiled net
+ # to be stale. But as of https://go.dev/cl/452457 the precompiled libraries are
+ # no longer installed anyway! Since we're requiring a C compiler in order to
+diff --git a/src/cmd/go/testdata/script/goroot_executable.txt b/src/cmd/go/testdata/script/goroot_executable.txt
+index e20dbd87ac..ea0f920a37 100644
+--- a/src/cmd/go/testdata/script/goroot_executable.txt
++++ b/src/cmd/go/testdata/script/goroot_executable.txt
+@@ -3,16 +3,9 @@
+ 
  mkdir $WORK/new/bin
- mkdir $WORK/new/bin/${GOOS}_${GOARCH}
  
 -# In this test, we are specifically checking the logic for deriving
--# the value of GOROOT from os.Executable when runtime.GOROOT is
--# trimmed away.
+-# the value of GOROOT from runtime.GOROOT.
 -# GOROOT_FINAL changes the default behavior of runtime.GOROOT,
--# so we explicitly clear it to remove it as a confounding variable.
+-# and will thus cause the test to fail if it is set when our
+-# new cmd/go is built.
 -env GOROOT_FINAL=
 -
  # $GOROOT/bin/go is whatever the user has already installed
@@ -566,30 +596,48 @@ index dc1e25e606..9e7ed28b22 100644
 -# options it may have been built with, such as -trimpath or GOROOT_FINAL.
 +# options it may have been built with, such as -trimpath or not.
  # Instead, we build a fresh copy of the binary with known settings.
+ go build -o $WORK/new/bin/go$GOEXE cmd/go &
+ go build -trimpath -o $WORK/bin/check$GOEXE check.go &
+diff --git a/src/cmd/go/testdata/script/goroot_executable_trimpath.txt b/src/cmd/go/testdata/script/goroot_executable_trimpath.txt
+index a3f0c39a83..4b49bf6068 100644
+--- a/src/cmd/go/testdata/script/goroot_executable_trimpath.txt
++++ b/src/cmd/go/testdata/script/goroot_executable_trimpath.txt
+@@ -14,13 +14,10 @@ mkdir $WORK/new/bin/${GOOS}_${GOARCH}
+ # In this test, we are specifically checking the logic for deriving
+ # the value of GOROOT from os.Executable when runtime.GOROOT is
+ # trimmed away.
+-# GOROOT_FINAL changes the default behavior of runtime.GOROOT,
+-# so we explicitly clear it to remove it as a confounding variable.
+-env GOROOT_FINAL=
+ 
+ # $GOROOT/bin/go is whatever the user has already installed
+ # (using make.bash or similar). We can't make assumptions about what
+-# options it may have been built with, such as -trimpath or GOROOT_FINAL.
++# options it may have been built with, such as -trimpath or not.
+ # Instead, we build a fresh copy of the binary with known settings.
  go build -trimpath -o $WORK/new/bin/go$GOEXE cmd/go &
  go build -trimpath -o $WORK/bin/check$GOEXE check.go &
-@@ -31,10 +24,10 @@ env GOROOT=
+@@ -38,11 +35,13 @@ env home=''
  
  # Relocated Executable
  # Since we built with -trimpath and the binary isn't installed in a
 -# normal-looking GOROOT, this command should fail.
 +# normal-looking GOROOT, this command will display the new location.
  
--! exec $WORK/new/bin/go$GOEXE env GOROOT
--stderr '^go: cannot find GOROOT directory: ''go'' binary is trimmed and GOROOT is not set$'
-+exec $WORK/new/bin/go$GOEXE env GOROOT
-+stdout '^'$TESTGO_GOROOT'$'
+ ! exec $WORK/new/bin/go$GOEXE env GOROOT
+ stderr '^go: cannot find GOROOT directory: ''go'' binary is trimmed and GOROOT is not set$'
+ ! stderr 'GOPATH set to GOROOT'
++# exec $WORK/new/bin/go$GOEXE env GOROOT
++# stdout '^'$TESTGO_GOROOT'$'
  
  # Cross-compiled binaries in cmd are installed to a ${GOOS}_${GOARCH} subdirectory,
  # so we also want to try a copy there.
-@@ -42,8 +35,8 @@ stderr '^go: cannot find GOROOT directory: ''go'' binary is trimmed and GOROOT i
- # https://go.dev/issue/22315, so we don't have to do that explicitly in the
- # 'check' program we use later.)
- cp $WORK/new/bin/go$GOEXE $WORK/new/bin/${GOOS}_${GOARCH}/go$GOEXE
--! exec $WORK/new/bin/${GOOS}_${GOARCH}/go$GOEXE env GOROOT
--stderr '^go: cannot find GOROOT directory: ''go'' binary is trimmed and GOROOT is not set$'
-+exec $WORK/new/bin/${GOOS}_${GOARCH}/go$GOEXE env GOROOT
-+stdout '^'$TESTGO_GOROOT'$'
+@@ -53,6 +52,8 @@ cp $WORK/new/bin/go$GOEXE $WORK/new/bin/${GOOS}_${GOARCH}/go$GOEXE
+ ! exec $WORK/new/bin/${GOOS}_${GOARCH}/go$GOEXE env GOROOT
+ stderr '^go: cannot find GOROOT directory: ''go'' binary is trimmed and GOROOT is not set$'
+ ! stderr 'GOPATH set to GOROOT'
++# exec $WORK/new/bin/${GOOS}_${GOARCH}/go$GOEXE env GOROOT
++# stdout '^'$TESTGO_GOROOT'$'
  
  # Relocated Tree:
  # If the binary is sitting in a bin dir next to ../pkg/tool, that counts as a GOROOT,
@@ -783,5 +831,5 @@ index 19a6cc6f8d..e00d6cf202 100644
  
  	checkLldbPython(t)
 -- 
-2.37.3.windows.1
+2.43.0
 
