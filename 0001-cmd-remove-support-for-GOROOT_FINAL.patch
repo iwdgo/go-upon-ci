@@ -1,4 +1,4 @@
-From 36a33aa97bc36d0506c4c453953b0b92e6bf291c Mon Sep 17 00:00:00 2001
+From 36a97a297db2ddc1f84697257f5488151ae4f496 Mon Sep 17 00:00:00 2001
 From: Constantin Konstantinidis <constantinkonstantinidis@gmail.com>
 Date: Sun, 5 Nov 2023 10:35:12 +0100
 Subject: [PATCH] cmd: remove support for GOROOT_FINAL
@@ -21,10 +21,10 @@ Change-Id: If7811c1eb9073fb09b7006076998f8b2e1810bfb
  src/cmd/go/testdata/script/README             |  3 --
  .../go/testdata/script/build_issue48319.txt   | 46 -------------------
  src/cmd/go/testdata/script/build_trimpath.txt | 37 ++++++++-------
- .../testdata/script/build_trimpath_goroot.txt | 32 ++++++-------
+ .../testdata/script/build_trimpath_goroot.txt | 20 +++-----
  .../testdata/script/cgo_stale_precompiled.txt |  7 +--
  .../go/testdata/script/goroot_executable.txt  |  9 +---
- .../script/goroot_executable_trimpath.txt     | 19 ++++----
+ .../script/goroot_executable_trimpath.txt     | 11 ++---
  .../internal/bootstrap_test/reboot_test.go    |  2 +-
  src/cmd/internal/moddeps/moddeps_test.go      |  2 -
  src/cmd/link/internal/ld/main.go              | 10 ++--
@@ -37,7 +37,7 @@ Change-Id: If7811c1eb9073fb09b7006076998f8b2e1810bfb
  src/make.rc                                   |  3 --
  src/runtime/runtime-gdb_test.go               |  9 ++--
  src/runtime/runtime-lldb_test.go              |  3 --
- 30 files changed, 76 insertions(+), 242 deletions(-)
+ 30 files changed, 65 insertions(+), 233 deletions(-)
  delete mode 100644 src/cmd/go/testdata/script/build_issue48319.txt
 
 diff --git a/src/cmd/addr2line/addr2line_test.go b/src/cmd/addr2line/addr2line_test.go
@@ -536,7 +536,7 @@ index 2a2aa2080a..4e7c1d9ccb 100644
  	containsSlashDir := bytes.Contains(data, []byte(filepath.ToSlash(dir)))
  	fmt.Printf("binary contains %s: %v\n", desc, containsDir || containsSlashDir)
 diff --git a/src/cmd/go/testdata/script/build_trimpath_goroot.txt b/src/cmd/go/testdata/script/build_trimpath_goroot.txt
-index a26cfd23be..5115a118c8 100644
+index a26cfd23be..eee63e634c 100644
 --- a/src/cmd/go/testdata/script/build_trimpath_goroot.txt
 +++ b/src/cmd/go/testdata/script/build_trimpath_goroot.txt
 @@ -4,11 +4,6 @@
@@ -560,30 +560,6 @@ index a26cfd23be..5115a118c8 100644
  # should cause runtime.GOROOT() to report either the correct GOROOT
  # (without -trimpath) or no GOROOT at all (with -trimpath).
  
-@@ -32,17 +27,17 @@ exec ./example.exe
- stdout '^GOROOT '$TESTGO_GOROOT'$'
- stdout '^runtime '$TESTGO_GOROOT${/}src${/}runtime'$'
- 
--! exec ./example-trimpath.exe
--stdout '^GOROOT $'
--stderr 'cannot find package "runtime" in any of:\n\t\(\$GOROOT not set\)\n\t'$WORK${/}gopath${/}src${/}runtime' \(from \$GOPATH\)\n\z'
-+exec ./example-trimpath.exe
-+stdout '^GOROOT '$TESTGO_GOROOT'$'
-+stdout '^runtime '$TESTGO_GOROOT${/}src${/}runtime'$'
- 
- exec ./example.test.exe -test.v
- stdout '^GOROOT '$TESTGO_GOROOT'$'
- stdout '^runtime '$TESTGO_GOROOT${/}src${/}runtime'$'
- 
--! exec ./example.test-trimpath.exe -test.v
--stdout '^GOROOT $'
--stderr 'cannot find package "runtime" in any of:\n\t\(\$GOROOT not set\)\n\t'$WORK${/}gopath${/}src${/}runtime' \(from \$GOPATH\)$'
-+exec ./example.test-trimpath.exe -test.v
-+stdout '^GOROOT '$TESTGO_GOROOT'$'
-+stdout '^runtime '$TESTGO_GOROOT${/}src${/}runtime'$'
- 
- # If a correct GOROOT is baked in to the 'go' command itself, 'go run' and
- # 'go test' should not implicitly set GOROOT in the process environment
 @@ -52,15 +47,14 @@ stderr 'cannot find package "runtime" in any of:\n\t\(\$GOROOT not set\)\n\t'$WO
  # code).
  
@@ -655,7 +631,7 @@ index e20dbd87ac..ea0f920a37 100644
  go build -o $WORK/new/bin/go$GOEXE cmd/go &
  go build -trimpath -o $WORK/bin/check$GOEXE check.go &
 diff --git a/src/cmd/go/testdata/script/goroot_executable_trimpath.txt b/src/cmd/go/testdata/script/goroot_executable_trimpath.txt
-index a3f0c39a83..5509dee342 100644
+index a3f0c39a83..a46132f022 100644
 --- a/src/cmd/go/testdata/script/goroot_executable_trimpath.txt
 +++ b/src/cmd/go/testdata/script/goroot_executable_trimpath.txt
 @@ -14,13 +14,10 @@ mkdir $WORK/new/bin/${GOOS}_${GOARCH}
@@ -673,23 +649,7 @@ index a3f0c39a83..5509dee342 100644
  # Instead, we build a fresh copy of the binary with known settings.
  go build -trimpath -o $WORK/new/bin/go$GOEXE cmd/go &
  go build -trimpath -o $WORK/bin/check$GOEXE check.go &
-@@ -38,10 +35,12 @@ env home=''
- 
- # Relocated Executable
- # Since we built with -trimpath and the binary isn't installed in a
--# normal-looking GOROOT, this command should fail.
-+# normal-looking GOROOT, this command will display the new location.
- 
--! exec $WORK/new/bin/go$GOEXE env GOROOT
--stderr '^go: cannot find GOROOT directory: ''go'' binary is trimmed and GOROOT is not set$'
-+# ! exec $WORK/new/bin/go$GOEXE env GOROOT
-+# stderr '^go: cannot find GOROOT directory: ''go'' binary is trimmed and GOROOT is not set$'
-+exec $WORK/new/bin/go$GOEXE env GOROOT
-+stdout '^'$TESTGO_GOROOT'$'
- ! stderr 'GOPATH set to GOROOT'
- 
- # Cross-compiled binaries in cmd are installed to a ${GOOS}_${GOARCH} subdirectory,
-@@ -50,8 +49,10 @@ stderr '^go: cannot find GOROOT directory: ''go'' binary is trimmed and GOROOT i
+@@ -50,8 +47,10 @@ stderr '^go: cannot find GOROOT directory: ''go'' binary is trimmed and GOROOT i
  # https://go.dev/issue/22315, so we don't have to do that explicitly in the
  # 'check' program we use later.)
  cp $WORK/new/bin/go$GOEXE $WORK/new/bin/${GOOS}_${GOARCH}/go$GOEXE
