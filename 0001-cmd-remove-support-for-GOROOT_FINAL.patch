@@ -1,4 +1,4 @@
-From 200a6b78368a8ea65459547135788b4f7a730faf Mon Sep 17 00:00:00 2001
+From 36a33aa97bc36d0506c4c453953b0b92e6bf291c Mon Sep 17 00:00:00 2001
 From: Constantin Konstantinidis <constantinkonstantinidis@gmail.com>
 Date: Sun, 5 Nov 2023 10:35:12 +0100
 Subject: [PATCH] cmd: remove support for GOROOT_FINAL
@@ -10,7 +10,7 @@ Change-Id: If7811c1eb9073fb09b7006076998f8b2e1810bfb
  src/cmd/addr2line/addr2line_test.go           | 20 ++------
  src/cmd/dist/build.go                         | 19 +-------
  src/cmd/go/alldocs.go                         |  5 --
- src/cmd/go/go_test.go                         |  7 ---
+ src/cmd/go/go_test.go                         |  9 +---
  src/cmd/go/internal/cfg/cfg.go                | 13 ------
  src/cmd/go/internal/help/helpdoc.go           |  5 --
  src/cmd/go/internal/work/exec.go              | 19 ++++----
@@ -20,7 +20,7 @@ Change-Id: If7811c1eb9073fb09b7006076998f8b2e1810bfb
  src/cmd/go/scriptreadme_test.go               |  1 -
  src/cmd/go/testdata/script/README             |  3 --
  .../go/testdata/script/build_issue48319.txt   | 46 -------------------
- src/cmd/go/testdata/script/build_trimpath.txt | 35 +++++++-------
+ src/cmd/go/testdata/script/build_trimpath.txt | 37 ++++++++-------
  .../testdata/script/build_trimpath_goroot.txt | 32 ++++++-------
  .../testdata/script/cgo_stale_precompiled.txt |  7 +--
  .../go/testdata/script/goroot_executable.txt  |  9 +---
@@ -30,13 +30,14 @@ Change-Id: If7811c1eb9073fb09b7006076998f8b2e1810bfb
  src/cmd/link/internal/ld/main.go              | 10 ++--
  src/cmd/link/internal/ld/pcln.go              | 11 +----
  src/cmd/objdump/objdump_test.go               |  3 --
+ src/internal/buildcfg/cfg.go                  |  3 +-
  src/internal/testenv/testenv.go               |  6 +--
  src/make.bash                                 |  3 --
  src/make.bat                                  |  3 --
  src/make.rc                                   |  3 --
- src/runtime/runtime-gdb_test.go               |  6 +--
+ src/runtime/runtime-gdb_test.go               |  9 ++--
  src/runtime/runtime-lldb_test.go              |  3 --
- 29 files changed, 71 insertions(+), 237 deletions(-)
+ 30 files changed, 76 insertions(+), 242 deletions(-)
  delete mode 100644 src/cmd/go/testdata/script/build_issue48319.txt
 
 diff --git a/src/cmd/addr2line/addr2line_test.go b/src/cmd/addr2line/addr2line_test.go
@@ -154,7 +155,7 @@ index a40d0556ff..04a91737e9 100644
  //		Whether the linker should use external linking mode
  //		when using -linkmode=auto with code that uses cgo.
 diff --git a/src/cmd/go/go_test.go b/src/cmd/go/go_test.go
-index bae83eb92f..5e9c48044f 100644
+index bae83eb92f..8fa7d72d69 100644
 --- a/src/cmd/go/go_test.go
 +++ b/src/cmd/go/go_test.go
 @@ -90,10 +90,6 @@ func tooSlow(t *testing.T, reason string) {
@@ -168,13 +169,15 @@ index bae83eb92f..5e9c48044f 100644
  var testGOCACHE string
  
  var testGo string
-@@ -224,9 +220,6 @@ func TestMain(m *testing.M) {
+@@ -223,10 +219,7 @@ func TestMain(m *testing.M) {
+ 		}
  		testGOROOT = goEnv("GOROOT")
  		os.Setenv("TESTGO_GOROOT", testGOROOT)
- 		// Ensure that GOROOT is set explicitly.
+-		// Ensure that GOROOT is set explicitly.
 -		// Otherwise, if the toolchain was built with GOROOT_FINAL set but has not
 -		// yet been moved to its final location, programs that invoke runtime.GOROOT
 -		// may accidentally use the wrong path.
++		// GOROOT is set explicitly and is baked into the executable.
  		os.Setenv("GOROOT", testGOROOT)
  
  		// The whole GOROOT/pkg tree was installed using the GOHOSTOS/GOHOSTARCH
@@ -278,7 +281,7 @@ index ecad324886..a72cb10fd8 100644
  	// TODO(golang.org/issue/36072): cgo also generates files with #line
  	// directives pointing to the source directory. It should not generate those
 diff --git a/src/cmd/go/internal/work/gc.go b/src/cmd/go/internal/work/gc.go
-index e2a5456bde..a3f5dacf20 100644
+index e2a5456bde..c30e3d3886 100644
 --- a/src/cmd/go/internal/work/gc.go
 +++ b/src/cmd/go/internal/work/gc.go
 @@ -29,9 +29,6 @@ import (
@@ -295,7 +298,7 @@ index e2a5456bde..a3f5dacf20 100644
  	}
  
  	env := []string{}
-+	// When -trimpath, GOROOT is cleared
++	// When -trimpath is used, GOROOT is cleared
  	if cfg.BuildTrimpath {
 -		env = append(env, "GOROOT_FINAL="+trimPathGoRootFinal)
 +		env = append(env, "GOROOT=")
@@ -427,16 +430,17 @@ index 4543303059..0000000000
 -	println(runtime.GOROOT())
 -}
 diff --git a/src/cmd/go/testdata/script/build_trimpath.txt b/src/cmd/go/testdata/script/build_trimpath.txt
-index 2a2aa2080a..9d7c641280 100644
+index 2a2aa2080a..4e7c1d9ccb 100644
 --- a/src/cmd/go/testdata/script/build_trimpath.txt
 +++ b/src/cmd/go/testdata/script/build_trimpath.txt
 @@ -1,8 +1,8 @@
  [short] skip
  
 -# If GOROOT_FINAL is set, 'go build -trimpath' bakes that into the resulting
-+# If GOROOT is set, 'go build -trimpath' bakes that into the resulting
- # binary instead of GOROOT. Explicitly unset it here.
+-# binary instead of GOROOT. Explicitly unset it here.
 -env GOROOT_FINAL=
++# If GOROOT is set, 'go build -trimpath' bakes that into the resulting
++# binary. Explicitly unset it here.
 +env GOROOT=
  
  # Set up two identical directories that can be used as GOPATH.
@@ -792,6 +796,25 @@ index 6e781c924d..a755ec3b64 100644
  	t.Logf("Running %v", cmd.Args)
  	out, err := cmd.CombinedOutput()
  	if err != nil {
+diff --git a/src/internal/buildcfg/cfg.go b/src/internal/buildcfg/cfg.go
+index 8b97a653d7..0ac7f27240 100644
+--- a/src/internal/buildcfg/cfg.go
++++ b/src/internal/buildcfg/cfg.go
+@@ -15,13 +15,12 @@ import (
+ 	"fmt"
+ 	"os"
+ 	"path/filepath"
+-	"runtime"
+ 	"strconv"
+ 	"strings"
+ )
+ 
+ var (
+-	GOROOT   = runtime.GOROOT() // cached for efficiency
++	GOROOT   = os.Getenv("GOROOT") // cached for efficiency
+ 	GOARCH   = envOr("GOARCH", defaultGOARCH)
+ 	GOOS     = envOr("GOOS", defaultGOOS)
+ 	GO386    = envOr("GO386", defaultGO386)
 diff --git a/src/internal/testenv/testenv.go b/src/internal/testenv/testenv.go
 index 5c8013740e..f767ac590c 100644
 --- a/src/internal/testenv/testenv.go
@@ -857,7 +880,7 @@ index b10be7dbd1..607e9360dc 100755
  # binaries).  Binaries of this type must be executable on the current
  # system, so the only common reason to set this is to set
 diff --git a/src/runtime/runtime-gdb_test.go b/src/runtime/runtime-gdb_test.go
-index 1ae6ff041a..f022655e64 100644
+index 1ae6ff041a..ade7a35ed0 100644
 --- a/src/runtime/runtime-gdb_test.go
 +++ b/src/runtime/runtime-gdb_test.go
 @@ -54,9 +54,6 @@ func checkGdbEnvironment(t *testing.T) {
@@ -870,16 +893,27 @@ index 1ae6ff041a..f022655e64 100644
  }
  
  func checkGdbVersion(t *testing.T) {
-@@ -299,8 +296,7 @@ func testGdbPython(t *testing.T, cgo bool) {
+@@ -298,10 +295,8 @@ func testGdbPython(t *testing.T, cgo bool) {
+ 
  	got = bytes.ReplaceAll(got, []byte("\r\n"), []byte("\n")) // normalize line endings
  	firstLine, _, _ := bytes.Cut(got, []byte("\n"))
++	/* TODO Remove
  	if string(firstLine) != "Loading Go Runtime support." {
 -		// This can happen when using all.bash with
 -		// GOROOT_FINAL set, because the tests are run before
-+		// This can happen when the tests are run before
- 		// the final installation of the files.
+-		// the final installation of the files.
  		cmd := exec.Command(testenv.GoToolPath(t), "env", "GOROOT")
  		cmd.Env = []string{}
+ 		out, err := cmd.CombinedOutput()
+@@ -315,6 +310,8 @@ func testGdbPython(t *testing.T, cgo bool) {
+ 		t.Fatalf("failed to load Go runtime support: %s\n%s", firstLine, got)
+ 	}
+ 
++	*/
++
+ 	// Extract named BEGIN...END blocks from output
+ 	partRe := regexp.MustCompile(`(?ms)^BEGIN ([^\n]*)\n(.*?)\nEND`)
+ 	blocks := map[string]string{}
 diff --git a/src/runtime/runtime-lldb_test.go b/src/runtime/runtime-lldb_test.go
 index 19a6cc6f8d..e00d6cf202 100644
 --- a/src/runtime/runtime-lldb_test.go
