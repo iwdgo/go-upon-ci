@@ -41,8 +41,6 @@ jobs:
 
     - name: Run 'go test golang.org/x/tools module'
       run: |
-        pwd
-        ls
         go/bin/go version
         go/bin/go env
         git clone --depth=1 --branch master --single-branch --no-tags https://github.com/golang/tools.git
