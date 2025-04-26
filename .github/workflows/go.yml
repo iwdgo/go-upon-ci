@@ -33,7 +33,7 @@ jobs:
         sudo apt install qemu-system-x86 virt-manager
         # sudo chmod u+rwx libvirt-qemu ./
         # Download freebsd
-        wget https://download.freebsd.org/ftp/releases/VM-IMAGES/14.0-RELEASE/amd64/Latest/FreeBSD-14.0-RELEASE-amd64.qcow2.xz
+        wget https://download.freebsd.org/ftp/releases/VM-IMAGES/14.2-RELEASE/amd64/Latest/FreeBSD-14.2-RELEASE-amd64.qcow2.xz
         xz --decompress FreeBSD-14.0-RELEASE-amd64.qcow2.xz
         virsh pool-list
         ls -l /var/lib/libvirt/
