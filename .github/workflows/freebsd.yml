@@ -39,9 +39,9 @@ jobs:
         # echo 'console="comconsole"' >> /mnt/boot/loader.conf
         # umount /mnt
         sudo qemu-system-x86_64 -drive file=$freebsdrel,format=qcow2 \
-        -nographic -display curses -monitor \
+        -nographic -display curses \
         -enable-kvm \
-        -serial telnet:127.0.0.1:4444,server,nowait
+        -monitor -serial telnet:127.0.0.1:4444,server,nowait
         # -serial mon:stdio \
         # -serial unix:console.sock,server,nowait \
         telnet localhost 4444
