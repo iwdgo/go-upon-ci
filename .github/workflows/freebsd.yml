@@ -33,17 +33,11 @@ jobs:
         qemu-img resize $freebsdrel +2G
         ls
         # 
-        # nbd-server
-        ls /dev/nbd*
-        sudo qemu-nbd -c /dev/nbd0 $freebsdrel
-        fdisk -l /dev/nbd0
+        # nbd devices on Github runner
+        # mount -t ufs -o ufstype=ufs2,rw /dev/nbd0p4 /mnt
         #
-        mount -t ufs -o ufstype=ufs2,rw /dev/nbd0p4 /mnt
-        #
-        echo 'console="comconsole"' >> /mnt/boot/loader.conf
-        umount /mnt
-        qemu-nbd -d /dev/nbd0
-        #
+        # echo 'console="comconsole"' >> /mnt/boot/loader.conf
+        # umount /mnt
         qemu-system-x86_64 -drive file=$freebsdrel,format=qcow2 \
         -enable-kvm -serial mon:stdio -nographic  -monitor \
         -serial telnet:127.0.0.1:4444,server,nowait
