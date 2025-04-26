@@ -41,9 +41,9 @@ jobs:
         sudo qemu-system-x86_64 -drive file=$freebsdrel,format=qcow2 \
         -nographic -display curses \
         -serial mon:stdio \
-        -serial unix:console.sock,server,nowait \
+        # -serial unix:console.sock,server,nowait \
         -enable-kvm \
-        -serial telnet:127.0.0.1:4444,server,nowait
+        # -serial telnet:127.0.0.1:4444,server,nowait
         telnet localhost 4444
         uname -a
         whoami
