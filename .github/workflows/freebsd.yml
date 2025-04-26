@@ -29,7 +29,6 @@ jobs:
         wget https://download.freebsd.org/ftp/releases/VM-IMAGES/14.2-RELEASE/amd64/Latest/FreeBSD-14.2-RELEASE-amd64.qcow2.xz
         unxz $freebsdrel.xz
         ls
-        # sudo mv $freebsdrel /var/lib/libvirt/images/
         qemu-img resize $freebsdrel +2G
         ls
         # 
@@ -49,6 +48,7 @@ jobs:
         # -serial unix:console.sock,server,nowait \
         # -serial telnet:127.0.0.1:4444,server,nowait
         ## Same using virt
+        sudo mv $freebsdrel /var/lib/libvirt/images/
         sudo virt-install --connect qemu:///system \
           --name freebsd142 \
           --memory 2048 \
