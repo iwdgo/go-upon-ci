@@ -37,6 +37,7 @@ jobs:
         #
         # echo 'console="comconsole"' >> /mnt/boot/loader.conf
         # umount /mnt
+        # TODO Fails on "we need a console"
         # sudo qemu-system-x86_64 -drive file=$freebsdrel,format=qcow2 \
         # -nographic -display curses \
         # -enable-kvm \
@@ -49,6 +50,7 @@ jobs:
         # -serial telnet:127.0.0.1:4444,server,nowait
         ## Same using virt
         sudo mv $freebsdrel /var/lib/libvirt/images/
+        qemu-img resize /var/lib/libvirt/images/FreeBSD-14.2-RELEASE-amd64.qcow2 +2G
         sudo virt-install --connect qemu:///system \
           --name freebsd142 \
           --memory 2048 \
