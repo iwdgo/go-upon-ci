@@ -61,7 +61,7 @@ jobs:
         # qemu-img create -f qcow2 -o preallocation=off FreeBSD-14.0-RELEASE-amd64.qcow2 +2G
         # bus=...:virtio ?
         sudo virt-install --connect qemu:///system \
-          --name freebsd140 \
+          --name freebsd142 \
           --memory 2048 \
           --osinfo freebsd14.2 \
           --network network=default,model=e1000,model=virtio \
@@ -69,14 +69,15 @@ jobs:
           --virt-typ qemu \
           --disk /var/lib/libvirt/images/FreeBSD-14.2-RELEASE-amd64.qcow2,bus=virtio \
           --import
+          --extra-args='console=ttyS0'
+        virsh start freebsd142
         virsh pool-list
-        # virsh start freebsd140
         virsh list --all
         # qemu-system-x86_64 -drive file=FreeBSD-14.0-RELEASE-amd64.qcow2,format=qcow2 -nographic \
         #  freebsd +1G
         # socat STDIO,cfmakeraw UNIX:console.sock
         # Enter Freebsd
-        ssh -p 7722 root@localhost
+        ssh -p 7722 root@localhost virsh console <vm_name>
         uname -a
         # pkg install -y socat # freebsd package
         # sysrc sshd_enable="YES" ifconfig_em0="DHCP"
