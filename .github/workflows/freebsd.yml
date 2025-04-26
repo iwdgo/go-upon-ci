@@ -41,6 +41,7 @@ jobs:
         sudo qemu-system-x86_64 -drive file=$freebsdrel,format=qcow2 \
         -nographic -display curses \
         -enable-kvm \
+        -serial mon:stdio \
         -monitor unix:console.sock,server,nowait
         # -serial mon:stdio \
         # -serial unix:console.sock,server,nowait \
