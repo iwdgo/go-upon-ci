@@ -1,5 +1,6 @@
 name: image test
 # on: [push]
+if: false
 jobs:
 
   build:
