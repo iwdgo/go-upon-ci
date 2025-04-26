@@ -63,19 +63,20 @@ jobs:
         sudo virt-install --connect qemu:///system \
           --name freebsd140 \
           --memory 2048 \
-          --osinfo freebsd14.0 \
+          --osinfo freebsd14.2 \
           --network network=default,model=e1000,model=virtio \
           --nographics \
           --virt-typ qemu \
           --disk /var/lib/libvirt/images/FreeBSD-14.2-RELEASE-amd64.qcow2,bus=virtio \
           --import
+        virsh pool-list
         # virsh start freebsd140
-        # virsh list --all
+        virsh list --all
         # qemu-system-x86_64 -drive file=FreeBSD-14.0-RELEASE-amd64.qcow2,format=qcow2 -nographic \
         #  freebsd +1G
         # socat STDIO,cfmakeraw UNIX:console.sock
         # Enter Freebsd
-        # ssh -p 7722 root@localhost
+        ssh -p 7722 root@localhost
         uname -a
         # pkg install -y socat # freebsd package
         # sysrc sshd_enable="YES" ifconfig_em0="DHCP"
