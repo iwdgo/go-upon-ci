@@ -38,9 +38,9 @@ jobs:
         xz --decompress $freebsdrel
         virsh pool-list
         ls -l /var/lib/libvirt/
-        sudo mv FreeBSD-14.0-RELEASE-amd64.qcow2 /var/lib/libvirt/images/
+        sudo mv $freebsdrel /var/lib/libvirt/images/
         # Provision the image
-        qemu-img resize /var/lib/libvirt/images/FreeBSD-14.0-RELEASE-amd64.qcow2 +2G
+        qemu-img resize /var/lib/libvirt/images/FreeBSD-14.2-RELEASE-amd64.qcow2 +2G
         # ps -ef | grep qemu-system-x86_64
         # Start
         # qemu-img resize FreeBSD-14.0-RELEASE-amd64.qcow2 +2G
@@ -67,7 +67,7 @@ jobs:
           --network network=default,model=e1000,model=virtio \
           --nographics \
           --virt-typ qemu \
-          --disk /var/lib/libvirt/images/FreeBSD-14.0-RELEASE-amd64.qcow2,bus=virtio \
+          --disk /var/lib/libvirt/images/FreeBSD-14.2-RELEASE-amd64.qcow2,bus=virtio \
           --import
         # virsh start freebsd140
         # virsh list --all
