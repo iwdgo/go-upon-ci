@@ -72,7 +72,7 @@ jobs:
           --nographics \
           --virt-typ qemu \
           --disk /var/lib/libvirt/images/FreeBSD-14.2-RELEASE-amd64.qcow2,bus=virtio \
-          --import
+          --import \
           --extra-args 'console=ttyS0,115200n8 serial'
         virsh start freebsd142
         virsh pool-list
