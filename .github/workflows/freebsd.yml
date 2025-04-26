@@ -39,7 +39,7 @@ jobs:
         # echo 'console="comconsole"' >> /mnt/boot/loader.conf
         # umount /mnt
         sudo qemu-system-x86_64 -drive file=$freebsdrel,format=qcow2 \
-        -nographic -display curses \
+        -nographic -display curses -monitor \
         -enable-kvm \
         -serial telnet:127.0.0.1:4444,server,nowait
         # -serial mon:stdio \
