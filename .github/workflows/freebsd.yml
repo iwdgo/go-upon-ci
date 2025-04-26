@@ -38,16 +38,27 @@ jobs:
         #
         # echo 'console="comconsole"' >> /mnt/boot/loader.conf
         # umount /mnt
-        sudo qemu-system-x86_64 -drive file=$freebsdrel,format=qcow2 \
-        -nographic -display curses \
-        -enable-kvm \
-        -serial mon:stdio \
-        -serial telnet:127.0.0.1:4444,server,nowait \
-        -append 'console=ttyS0' \
-        -monitor unix:console.sock,server,nowait
+        # sudo qemu-system-x86_64 -drive file=$freebsdrel,format=qcow2 \
+        # -nographic -display curses \
+        # -enable-kvm \
+        # -serial mon:stdio \
+        # -serial telnet:127.0.0.1:4444,server,nowait \
+        # -append 'console=ttyS0' \
+        # -monitor unix:console.sock,server,nowait
         # -serial mon:stdio \
         # -serial unix:console.sock,server,nowait \
         # -serial telnet:127.0.0.1:4444,server,nowait
+        ## Same using virt
+        sudo virt-install --connect qemu:///system \
+          --name freebsd142 \
+          --memory 2048 \
+          --osinfo freebsd14.2 \
+          --network network=default,model=e1000,model=virtio \
+          --nographics \
+          --virt-typ qemu \
+          --location /var/lib/libvirt/images/$freebsdrel \
+          --import \
+          --extra-args 'console=ttyS0,115200n8 serial'
         telnet localhost 4444
         uname -a
         whoami
