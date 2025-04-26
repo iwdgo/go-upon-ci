@@ -33,6 +33,7 @@ jobs:
         qemu-img resize $freebsdrel +2G
         ls
         # 
+        nbd-server
         qemu-nbd -c /dev/nbd0 $freebsdrel
         fdisk -l /dev/nbd0
         #
