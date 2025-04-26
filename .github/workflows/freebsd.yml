@@ -42,6 +42,7 @@ jobs:
         -nographic -display curses \
         -enable-kvm \
         -serial mon:stdio \
+        -serial telnet:127.0.0.1:4444,server,nowait \
         -monitor unix:console.sock,server,nowait
         # -serial mon:stdio \
         # -serial unix:console.sock,server,nowait \
