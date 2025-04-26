@@ -71,7 +71,7 @@ jobs:
           --network network=default,model=e1000,model=virtio \
           --nographics \
           --virt-typ qemu \
-          --disk /var/lib/libvirt/images/FreeBSD-14.2-RELEASE-amd64.qcow2,bus=virtio \
+          --location /var/lib/libvirt/images/FreeBSD-14.2-RELEASE-amd64.qcow2,bus=virtio \
           --import \
           --extra-args 'console=ttyS0,115200n8 serial'
         virsh start freebsd142
