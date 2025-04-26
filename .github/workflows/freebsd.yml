@@ -43,6 +43,7 @@ jobs:
         -enable-kvm \
         -serial mon:stdio \
         -serial telnet:127.0.0.1:4444,server,nowait \
+        -append 'console=ttyS0' \
         -monitor unix:console.sock,server,nowait
         # -serial mon:stdio \
         # -serial unix:console.sock,server,nowait \
