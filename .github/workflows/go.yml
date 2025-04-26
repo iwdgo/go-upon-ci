@@ -1,5 +1,5 @@
 name: image test
-on: [push]
+# on: [push]
 jobs:
 
   build:

@@ -1,0 +1,51 @@
+name: image test
+on: [push]
+jobs:
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      if: true
+      with:
+        go-version: 1.22.x
+      id: go
+
+    - uses: actions/checkout@v4
+    - name: Enable KVM group perms
+      if: false
+      run: |
+        echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+        sudo udevadm control --reload-rules
+        sudo udevadm trigger --name-match=kvm
+
+    - name: Test in FreeBSD
+      run: |
+        sudo apt install qemu-system-x86 qemu-nbd virt-manager
+        freebsdrel=FreeBSD-14.2-RELEASE-amd64.qcow2
+        wget https://download.freebsd.org/ftp/releases/VM-IMAGES/14.2-RELEASE/amd64/Latest/FreeBSD-14.2-RELEASE-amd64.qcow2.xz
+        unxz $freebsdrel.xz
+        ls
+        # sudo mv $freebsdrel /var/lib/libvirt/images/
+        qemu-img resize $freebsdrel +2G
+        ls
+        # 
+        qemu-nbd -c /dev/nbd0 $freebsdrel
+        fdisk -l /dev/nbd0
+        #
+        mount -t ufs -o ufstype=ufs2,rw /dev/nbd0p4 /mnt
+        #
+        echo 'console="comconsole"' >> /mnt/boot/loader.conf
+        umount /mnt
+        qemu-nbd -d /dev/nbd0
+        #
+        qemu-system-x86_64 -drive file=$freebsdrel,format=qcow2 \
+        -enable-kvm -serial mon:stdio -nographic  -monitor \
+        -serial telnet:127.0.0.1:4444,server,nowait
+        telnet localhost 4444
+        uname -a
+        whoami
+        quit
