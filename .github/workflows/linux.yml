@@ -29,15 +29,15 @@ jobs:
     - name: Format patches
       run: |
         # Create patches and apply
-        # go.dev/issue/30136
-        git fetch https://go.googlesource.com/go refs/changes/55/585055/3 && git checkout -b change-585055 FETCH_HEAD && git format-patch -1
+        # go.dev/issue/24233
+        git fetch https://go.googlesource.com/go refs/changes/75/669775/2 && git checkout -b change-669775 FETCH_HEAD && git format-patch -1
 
     - name: Build go from tip
       uses: iwdgo/gotip-build@master
       id: gotip
       with:
         go_variables: GO_TEST_SHORT=0 GO_TEST_TIMEOUT_SCALE=5
-        test_build: 'false'
+        test_build: 'true'
 
     - name: Run 'go test golang.org/x/tools module'
       run: |
